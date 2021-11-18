@@ -169,6 +169,7 @@ public class AndroidDeviceBridgeTool {
         } catch (Exception e) {
             logger.info("发送shell指令 {} 给设备 {} 异常！"
                     , command, iDevice.getSerialNumber());
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
         return output.getOutput();
@@ -188,6 +189,7 @@ public class AndroidDeviceBridgeTool {
             logger.info("{} 设备 {} 服务端口转发到：{}", iDevice.getSerialNumber(), service, port);
             iDevice.createForward(port, service, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -206,6 +208,7 @@ public class AndroidDeviceBridgeTool {
             logger.info("{} 设备 {} 服务端口取消转发到：{}", iDevice.getSerialNumber(), serviceName, port);
             iDevice.removeForward(port, serviceName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -299,6 +302,7 @@ public class AndroidDeviceBridgeTool {
                     break;
             }
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -309,6 +313,7 @@ public class AndroidDeviceBridgeTool {
                     .trim().replaceAll("\n", "")
                     .replace("\t", ""));
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
             return 0;
         }
@@ -428,6 +433,7 @@ public class AndroidDeviceBridgeTool {
         } catch (Exception e) {
             logger.info("{} 设备miniCap启动异常！"
                     , iDevice.getSerialNumber());
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -437,6 +443,7 @@ public class AndroidDeviceBridgeTool {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IllegalStateException | IOException e) {
+                e.printStackTrace();
                 logger.error("socket发送失败!连接已关闭！");
             }
         }
@@ -482,6 +489,7 @@ public class AndroidDeviceBridgeTool {
         } catch (Exception e) {
             logger.info("{} 设备miniTouch启动异常！"
                     , iDevice.getSerialNumber());
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }

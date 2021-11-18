@@ -122,8 +122,8 @@
         </dependency>
         <dependency>
             <groupId>org.bytedeco</groupId>
-            <artifactId>opencv</artifactId>
-            <version>4.3.0-1.5.3</version>
+            <artifactId>javacv-platform</artifactId>
+            <version>1.5.3</version>
         </dependency>
         <dependency>
             <groupId>org.bytedeco</groupId>
@@ -159,9 +159,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
@@ -204,9 +203,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
@@ -249,9 +247,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
@@ -294,9 +291,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
@@ -339,9 +335,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
@@ -384,9 +379,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
@@ -429,9 +423,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
@@ -474,9 +467,8 @@
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
-                    <artifactId>opencv</artifactId>
-                    <version>4.3.0-1.5.3</version>
-                    <classifier>${profileActive}</classifier>
+                    <artifactId>javacv-platform</artifactId>
+                    <version>1.5.3</version>
                 </dependency>
                 <dependency>
                     <groupId>org.bytedeco</groupId>
