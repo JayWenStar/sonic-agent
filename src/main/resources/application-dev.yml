@@ -5,11 +5,11 @@ spring:
   application:
     name: sonic-agent
   rabbitmq:
-    host: localhost
+    host: 81.70.118.76
     port: 5672
-    username: sonic
-    password: sonic
-    virtual-host: sonic
+    username: guest
+    password: guest
+    virtual-host: /
     listener:
       simple:
         acknowledge-mode: manual
