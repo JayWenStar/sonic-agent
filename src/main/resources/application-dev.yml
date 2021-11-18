@@ -1,5 +1,21 @@
-server:
-  port: 7777
+sonic:
+  agent:
+    host: localhost
+    port: 7777
+    key: 7bbc50da-1c7b-43e7-9d5d-4e8a86fa896a
+  server:
+    host: localhost
+    folder-port: 8094
+    transport-port: 8095
+
+modules:
+  android:
+    enable: true
+  ios:
+    enable: true
+  webview:
+    enable: true
+    chrome-driver-path: "/Applications/Google Chrome.app/Contents/MacOS/chromedriver"
 
 spring:
   application:
@@ -18,17 +34,8 @@ spring:
 
 logging:
   file:
-    name: logs/${spring.application.name}.log
+    name: logs/sonic-agent.log
   logback:
     rollingpolicy:
       clean-history-on-start: true
       max-history: 3
-
-sonic:
-  chrome:
-    path: "/Applications/Google Chrome.app/Contents/MacOS/chromedriver"
-  folder:
-    url: http://localhost:8094/api/folder
-  agent:
-    host: 127.0.0.1
-    key: 7bbc50da-1c7b-43e7-9d5d-4e8a86fa896a

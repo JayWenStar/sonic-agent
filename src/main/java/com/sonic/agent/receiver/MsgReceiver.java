@@ -27,7 +27,7 @@ import java.util.*;
 
 /**
  * @author ZhouYiXun
- * @des
+ * @des    消息消费者
  * @date 2021/9/16 18:40
  */
 @Component

@@ -15,6 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * @updater: chenwenjie.star
+ *
+ * rabbitmq配置类
+ * todo 之后会换成RocketMq
+ */
+
 @Configuration
 public class RabbitQueueConfig {
     private final Logger logger = LoggerFactory.getLogger(RabbitQueueConfig.class);

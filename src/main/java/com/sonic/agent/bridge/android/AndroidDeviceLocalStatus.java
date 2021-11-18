@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.maps.AndroidDeviceManagerMap;
 import com.sonic.agent.rabbitmq.RabbitMQThread;
-import com.sonic.agent.tools.AgentTool;
 
 /**
  * @author ZhouYiXun

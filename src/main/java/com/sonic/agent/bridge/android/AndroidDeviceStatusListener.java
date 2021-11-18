@@ -6,7 +6,6 @@ import com.android.ddmlib.IDevice;
 import com.sonic.agent.interfaces.PlatformType;
 import com.sonic.agent.maps.AndroidDeviceManagerMap;
 import com.sonic.agent.rabbitmq.RabbitMQThread;
-import com.sonic.agent.tools.AgentTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

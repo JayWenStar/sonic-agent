@@ -22,11 +22,6 @@ import com.sonic.agent.tools.PortTool;
 import com.sonic.agent.tools.ProcessCommandTool;
 import com.sonic.agent.tools.UploadTools;
 import org.openqa.selenium.OutputType;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.CapabilityType;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +34,11 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
@@ -115,7 +106,7 @@ public class AndroidWSServer {
         Future<?> miniCapThread = miniCapTool.start(udId, banner, null, "middle", -1, session);
         miniCapMap.put(session, miniCapThread);
 
-        if (devicePlatformVersion < 9) {
+        if (devicePlatformVersion < 10) {
             int finalMiniTouchPort = PortTool.getPort();
             Future<?> miniTouchPro = AndroidDeviceThreadPool.cachedThreadPool.submit(() -> {
                 try {
@@ -144,11 +135,6 @@ public class AndroidWSServer {
                     outputStream = touchSocket.getOutputStream();
                     outputMap.put(session, outputStream);
                     while (outputMap.get(session) != null && (!miniTouchPro.isDone())) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -327,13 +313,15 @@ public class AndroidWSServer {
             }
             case "touch":
                 OutputStream outputStream = outputMap.get(session);
-                try {
-                    outputStream.write(msg.getString("detail").getBytes());
-                    outputStream.flush();
-                    outputStream.write("c\n".getBytes());
-                    outputStream.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (outputStream != null) {
+                    try {
+                        outputStream.write(msg.getString("detail").getBytes());
+                        outputStream.flush();
+                        outputStream.write("c\n".getBytes());
+                        outputStream.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 break;
             case "keyEvent":
@@ -452,12 +440,12 @@ public class AndroidWSServer {
     }
 
     private void exit(Session session) {
+        AndroidDeviceLocalStatus.finish(udIdMap.get(session).getSerialNumber());
         try {
             HandlerMap.getAndroidMap().get(session.getId()).closeAndroidDriver();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            AndroidDeviceLocalStatus.finish(udIdMap.get(session).getSerialNumber());
             HandlerMap.getAndroidMap().remove(session.getId());
         }
         List<JSONObject> has = webViewForwardMap.get(udIdMap.get(session));

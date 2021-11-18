@@ -36,6 +36,9 @@ public class AndroidTests {
     @Value("${sonic.agent.key}")
     private String key;
 
+    /**
+     * mq策略
+     */
     public void run(Channel channel, long tag, JSONObject jsonObject) throws IOException {
         AndroidStepHandler androidStepHandler = new AndroidStepHandler();
         List<JSONObject> steps = jsonObject.getJSONArray("steps").toJavaList(JSONObject.class);
@@ -131,29 +134,6 @@ public class AndroidTests {
                     }
                     continue;
                 }
-//                File logDec = new File("test-output/log");
-//                if (!logDec.exists()) {
-//                    logDec.mkdirs();
-//                }
-                //写入logcat
-//                File logcatFile = new File(logDec + File.separator + Calendar.getInstance().getTimeInMillis() + "_" + udId + ".log");
-//                FileOutputStream logFileOut = null;
-//                try {
-//                    logFileOut = new FileOutputStream(logcatFile);
-//                } catch (FileNotFoundException e) {
-//                    logger.error(e.getMessage());
-//                }
-//                FileOutputStream finalLogFileOut = logFileOut;
-                //添加监听
-//                androidStepHandler.getAndroidDriver().addLogcatMessagesListener((msg) -> {
-//                    try {
-//                        finalLogFileOut.write((msg + "\n").getBytes(StandardCharsets.UTF_8));
-//                    } catch (IOException e) {
-//                        logger.error(e.getMessage());
-//                    }
-//                });
-                //开始广播
-//                androidStepHandler.getAndroidDriver().startLogcatBroadcast("localhost", AppiumServer.service.getUrl().getPort());
                 Future<?> miniCapPro = null;
                 AtomicReference<List<byte[]>> imgList = new AtomicReference<>(new ArrayList<>());
                 AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
@@ -168,30 +148,177 @@ public class AndroidTests {
                     MiniCapTool miniCapTool = new MiniCapTool();
                     miniCapPro = miniCapTool.start(udId, banner, imgList, "high", -1, null);
                 }
-                //两分钟录一次
-                try {
-                    Thread.sleep(120000);
-                } catch (InterruptedException e) {
-                    logger.error(e.getMessage());
+                int w = 0;
+                while (w < 10 && (!runStep.isDone())) {
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        logger.error(e.getMessage());
+                    }
+                    w++;
                 }
-                //移除监听
-//                androidStepHandler.getAndroidDriver().removeAllLogcatListeners();
-                //移除logcat广播
-//                androidStepHandler.getAndroidDriver().stopLogcatBroadcast();
-                //关闭流
-//                if (logFileOut != null) {
-//                    try {
-//                        logFileOut.close();
-//                    } catch (IOException e) {
-//                        logger.error(e.getMessage());
-//                    }
-//                }
-                //处理logcat日志
-//                if (isFail.get()) {
-//                    androidStepHandler.log.sendSelfLog(logcatFile.getName(), UploadTools.upload(logcatFile, "logFiles"));
-//                } else {
-//                    logcatFile.delete();
-//                }
+                //处理录像
+                if (isSupportRecord) {
+                    if (androidStepHandler.getStatus() == 3) {
+                        androidStepHandler.stopRecord(udId);
+                        return;
+                    } else {
+                        androidStepHandler.getAndroidDriver().stopRecordingScreen();
+                    }
+                } else {
+                    miniCapPro.cancel(true);
+                    if (androidStepHandler.getStatus() == 3) {
+                        File recordByRmvb = new File("test-output/record");
+                        if (!recordByRmvb.exists()) {
+                            recordByRmvb.mkdirs();
+                        }
+                        long timeMillis = Calendar.getInstance().getTimeInMillis();
+                        String fileName = timeMillis + "_" + udId.substring(0, 4) + ".mp4";
+                        File uploadFile = new File(recordByRmvb + File.separator + fileName);
+                        try {
+                            androidStepHandler.log.sendRecordLog(true, fileName,
+                                    RecordHandler.record(uploadFile, imgList.get()
+                                            , Integer.parseInt(banner.get()[9]), Integer.parseInt(banner.get()[13])));
+                        } catch (FrameRecorder.Exception e) {
+                            e.printStackTrace();
+                        }
+                        return;
+                    }
+                }
+            }
+        });
+        //等待两个线程结束了才结束方法
+        while ((!record.isDone()) || (!runStep.isDone())) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+            }
+        }
+        androidStepHandler.closeAndroidDriver();
+        androidStepHandler.sendStatus();
+        AndroidDeviceLocalStatus.finish(udId);
+    }
+
+    /**
+     * netty策略
+     */
+    public void run(JSONObject jsonObject) throws IOException {
+        AndroidStepHandler androidStepHandler = new AndroidStepHandler();
+        List<JSONObject> steps = jsonObject.getJSONArray("steps").toJavaList(JSONObject.class);
+        int rid = jsonObject.getInteger("rid");
+        int cid = jsonObject.getInteger("cid");
+        String udId = jsonObject.getJSONObject("device").getString("udId");
+        JSONObject gp = jsonObject.getJSONObject("gp");
+        androidStepHandler.setGlobalParams(gp);
+        androidStepHandler.setTestMode(cid, rid, udId, DeviceStatus.TESTING, "");
+        int wait = jsonObject.getInteger("wait");
+        if (!AndroidDeviceLocalStatus.startTest(udId)) {
+            androidStepHandler.waitDevice(wait + 1);
+            wait++;
+            if (wait >= 24) {
+                androidStepHandler.waitDeviceTimeOut(udId);
+                androidStepHandler.sendStatus();
+            } else {
+                //延时队列
+                jsonObject.put("wait", wait);
+                logger.info("进入延时队列:" + jsonObject);
+            }
+            return;
+        }
+        //启动测试
+        try {
+            androidStepHandler.startAndroidDriver(udId);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            androidStepHandler.closeAndroidDriver();
+            androidStepHandler.sendStatus();
+            AndroidDeviceLocalStatus.finishError(udId);
+            return;
+        }
+
+        //电量过低退出测试
+        if (androidStepHandler.getBattery()) {
+            androidStepHandler.closeAndroidDriver();
+            androidStepHandler.sendStatus();
+            AndroidDeviceLocalStatus.finish(udId);
+            return;
+        }
+
+        //正常运行步骤的线程
+        Future<?> runStep = AndroidDeviceThreadPool.cachedThreadPool.submit(() -> {
+            for (JSONObject step : steps) {
+                try {
+                    androidStepHandler.runStep(step);
+                } catch (Throwable e) {
+                    break;
+                }
+            }
+        });
+
+        //性能数据获取线程
+        AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
+            int tryTime = 0;
+            while (!runStep.isDone()) {
+                if (androidStepHandler.getAndroidDriver() == null) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        logger.error(e.getMessage());
+                    }
+                    continue;
+                }
+                try {
+                    androidStepHandler.getPerform();
+                    Thread.sleep(30000);
+                } catch (Exception e) {
+                    tryTime++;
+                }
+                if (tryTime > 10) {
+                    break;
+                }
+            }
+        });
+
+        //录像线程
+        Future<?> record = AndroidDeviceThreadPool.cachedThreadPool.submit(() -> {
+            Boolean isSupportRecord = true;
+            String manufacturer = AndroidDeviceBridgeTool.getIDeviceByUdId(udId).getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
+            if (manufacturer.equals("HUAWEI") || manufacturer.equals("OPPO") || manufacturer.equals("vivo")) {
+                isSupportRecord = false;
+            }
+            while (!runStep.isDone()) {
+                if (androidStepHandler.getAndroidDriver() == null) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        logger.error(e.getMessage());
+                    }
+                    continue;
+                }
+                Future<?> miniCapPro = null;
+                AtomicReference<List<byte[]>> imgList = new AtomicReference<>(new ArrayList<>());
+                AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
+                if (isSupportRecord) {
+                    try {
+                        androidStepHandler.startRecord();
+                    } catch (Exception e) {
+                        logger.error(e.getMessage());
+                        isSupportRecord = false;
+                    }
+                } else {
+                    MiniCapTool miniCapTool = new MiniCapTool();
+                    miniCapPro = miniCapTool.start(udId, banner, imgList, "high", -1, null);
+                }
+                int w = 0;
+                while (w < 10 && (!runStep.isDone())) {
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        logger.error(e.getMessage());
+                    }
+                    w++;
+                }
                 //处理录像
                 if (isSupportRecord) {
                     if (androidStepHandler.getStatus() == 3) {

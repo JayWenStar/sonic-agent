@@ -13,6 +13,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * updater: chenwenjie.star
+ *
+ * todo 如果后续确认RocketMq有异步机制，那就这里的代码就不需要了
+ */
 @Component
 public class RabbitMQThread {
     private static LinkedBlockingQueue<JSONObject> msgQueue;
