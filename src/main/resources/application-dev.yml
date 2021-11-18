@@ -9,7 +9,7 @@ spring:
     port: 5672
     username: guest
     password: guest
-    virtual-host: /
+    virtual-host: sonic
     listener:
       simple:
         acknowledge-mode: manual
@@ -26,9 +26,9 @@ logging:
 
 sonic:
   chrome:
-    path: C:\Program Files\Google\Chrome\Application\chromedriver.exe
+    path: "/Applications/Google Chrome.app/Contents/MacOS/chromedriver"
   folder:
     url: http://localhost:8094/api/folder
   agent:
     host: 127.0.0.1
-    key: 29002272-4659-4808-a804-08ce3388b136
+    key: 7bbc50da-1c7b-43e7-9d5d-4e8a86fa896a
