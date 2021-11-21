@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Import;
  * @des Agent端启动类
  * @date 2021/08/16 19:26
  */
-@Import(SpringTool.class)
+//@Import(SpringTool.class)
 @SpringBootApplication
 public class AgentApplication {
     @Value("${sonic.agent.port}")

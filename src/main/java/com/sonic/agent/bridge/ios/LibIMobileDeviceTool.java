@@ -1,15 +1,20 @@
 package com.sonic.agent.bridge.ios;
 
 import com.alibaba.fastjson.JSONObject;
+import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.maps.IOSDeviceManagerMap;
-import com.sonic.agent.rabbitmq.RabbitMQThread;
+import com.sonic.agent.netty.NettyThreadPool;
 import com.sonic.agent.tools.ProcessCommandTool;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -19,13 +24,22 @@ import java.io.LineNumberReader;
 import java.util.List;
 
 @ConditionalOnProperty(value = "modules.ios.enable", havingValue = "true")
-@DependsOn({"iOSThreadPoolInit", "rabbitMsgInit", "nettyMsgInit"})
+@DependsOn({"iOSThreadPoolInit", "rocketMQTemplate", "rocketMQConfig", "nettyMsgInit"})
 @Component
-public class LibIMobileDeviceTool {
+public class LibIMobileDeviceTool implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(LibIMobileDeviceTool.class);
+
+    private static RocketMQTemplate rocketMQTemplate;
+    private static RocketMQConfig rocketMQConfig;
 
     public LibIMobileDeviceTool() {
         init();
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
+        rocketMQConfig = applicationContext.getBean(RocketMQConfig.class);
     }
 
     public static void init() {
@@ -70,7 +84,8 @@ public class LibIMobileDeviceTool {
         deviceStatus.put("serialNum", udId);
         deviceStatus.put("status", "DISCONNECTED");
         logger.info("iOS设备：" + udId + " 下线！");
-        RabbitMQThread.send(deviceStatus);
+
+        NettyThreadPool.send(deviceStatus);
         IOSDeviceManagerMap.getMap().remove(udId);
 //        wdaKill(udid);
 //        relayKill(udid);
@@ -90,7 +105,8 @@ public class LibIMobileDeviceTool {
         deviceStatus.put("cpu", getCpuByUdId(udId));
         deviceStatus.put("manufacturer", "APPLE");
         logger.info("iOS设备：" + udId + " 上线！");
-        RabbitMQThread.send(deviceStatus);
+
+        NettyThreadPool.send(deviceStatus);
         IOSDeviceManagerMap.getMap().remove(udId);
     }
 

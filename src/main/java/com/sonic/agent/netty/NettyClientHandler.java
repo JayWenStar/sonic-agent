@@ -9,7 +9,7 @@ import com.sonic.agent.bridge.ios.LibIMobileDeviceTool;
 import com.sonic.agent.interfaces.PlatformType;
 import com.sonic.agent.maps.AndroidPasswordMap;
 import com.sonic.agent.maps.HandlerMap;
-import com.sonic.agent.tests.AndroidTests;
+import com.sonic.agent.tests.android.AndroidTests;
 import com.sonic.agent.tools.SpringTool;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,59 +50,11 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         logger.info("Agent:{} 收到服务器 {} 消息: {}", ctx.channel().localAddress(), ctx.channel().remoteAddress(), jsonObject);
         NettyThreadPool.cachedThreadPool.execute(() -> {
             switch (jsonObject.getString("msg")) {
-                case "reboot":
-                    if (jsonObject.getInteger("platform") == PlatformType.ANDROID) {
-                        IDevice rebootDevice = AndroidDeviceBridgeTool.getIDeviceByUdId(jsonObject.getString("udId"));
-                        if (rebootDevice != null) {
-                            AndroidDeviceBridgeTool.reboot(rebootDevice);
-                        }
-                    }
-                    if (jsonObject.getInteger("platform") == PlatformType.IOS) {
-                        if (LibIMobileDeviceTool.getDeviceList().contains(jsonObject.getString("udId"))) {
-                            LibIMobileDeviceTool.reboot(jsonObject.getString("udId"));
-                        }
-                    }
-                    break;
                 case "heartBeat":
                     JSONObject heartBeat = new JSONObject();
                     heartBeat.put("msg", "heartBeat");
                     heartBeat.put("status", "alive");
                     NettyThreadPool.send(heartBeat);
-                    break;
-                case "runStep":
-                    if (jsonObject.getInteger("pf") == PlatformType.ANDROID) {
-                        AndroidPasswordMap.getMap().put(jsonObject.getString("udId")
-                                , jsonObject.getString("pwd"));
-                        AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(jsonObject.getString("sessionId"));
-                        androidStepHandler.resetResultDetailStatus();
-                        androidStepHandler.setGlobalParams(jsonObject.getJSONObject("gp"));
-                        List<JSONObject> steps = jsonObject.getJSONArray("steps").toJavaList(JSONObject.class);
-                        for (JSONObject step : steps) {
-                            try {
-                                androidStepHandler.runStep(step);
-                            } catch (Throwable e) {
-                                break;
-                            }
-                        }
-                        androidStepHandler.sendStatus();
-                    }
-                    break;
-                case "suite":
-                    JSONObject device = jsonObject.getJSONObject("device");
-                    if (AndroidDeviceBridgeTool.getIDeviceByUdId(device.getString("udId")) != null) {
-                        AndroidPasswordMap.getMap().put(device.getString("udId")
-                                , device.getString("password"));
-                        try {
-                            androidTests.run(jsonObject);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        //取消本次测试
-                        JSONObject subResultCount = new JSONObject();
-                        subResultCount.put("rid", jsonObject.getInteger("rid"));
-                        NettyThreadPool.send(subResultCount);
-                    }
                     break;
             }
         });

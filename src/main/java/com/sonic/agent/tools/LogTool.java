@@ -1,12 +1,14 @@
 package com.sonic.agent.tools;
 
 import com.alibaba.fastjson.JSONObject;
+import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.interfaces.StepType;
 import com.sonic.agent.maps.WebSocketSessionMap;
-import com.sonic.agent.rabbitmq.RabbitMQThread;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.websocket.Session;
 import java.io.IOException;
@@ -18,13 +20,19 @@ import java.util.Date;
  * @des log工具类，会发送到服务端入库
  * @date 2021/8/16 19:54
  */
+@Slf4j
+@Component
 public class LogTool {
-    private final Logger logger = LoggerFactory.getLogger(LogTool.class);
     public String sessionId = "";
     public String type;
     public int caseId = 0;
     public int resultId = 0;
     public String udId = "";
+
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+    @Autowired
+    private RocketMQConfig rocketMQConfig;
 
     /**
      * @param message
@@ -44,7 +52,7 @@ public class LogTool {
         if (type.equals(DeviceStatus.TESTING)) {
             sendToServer(message);
         }
-        logger.info(message.toJSONString());
+        log.info(message.toJSONString());
     }
 
     /**
@@ -56,7 +64,9 @@ public class LogTool {
      */
     private void sendToServer(JSONObject message) {
         message.put("time", new Date());
-        RabbitMQThread.send(message);
+        rocketMQTemplate.convertAndSend(rocketMQConfig.getTopic().getTestDataTopic(), message);
+        // todo 确认无误后删除
+        // RabbitMQThread.send(message);
     }
 
     /**
@@ -73,7 +83,8 @@ public class LogTool {
                 message.put("time", getDateToString());
                 session.getBasicRemote().sendText(message.toJSONString());
             } catch (IllegalStateException | IOException e) {
-                logger.error(e.getMessage());
+                e.printStackTrace();
+                log.error(e.getMessage());
             }
         }
     }

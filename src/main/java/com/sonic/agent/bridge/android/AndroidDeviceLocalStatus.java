@@ -1,16 +1,31 @@
 package com.sonic.agent.bridge.android;
 
 import com.alibaba.fastjson.JSONObject;
+import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.maps.AndroidDeviceManagerMap;
-import com.sonic.agent.rabbitmq.RabbitMQThread;
+import com.sonic.agent.netty.NettyThreadPool;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author ZhouYiXun
  * @des 本地自定义的状态变更，不是通过adb的变更
  * @date 2021/08/16 19:26
  */
-public class AndroidDeviceLocalStatus {
+public class AndroidDeviceLocalStatus implements ApplicationContextAware {
+
+    private static RocketMQConfig rocketMQConfig;
+    private static RocketMQTemplate rocketMQTemplate;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        rocketMQConfig = applicationContext.getBean(RocketMQConfig.class);
+        rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
+    }
+
 
     /**
      * @param udId
@@ -25,7 +40,8 @@ public class AndroidDeviceLocalStatus {
         deviceDetail.put("msg", "deviceDetail");
         deviceDetail.put("udId", udId);
         deviceDetail.put("status", status);
-        RabbitMQThread.send(deviceDetail);
+
+        NettyThreadPool.send(deviceDetail);
     }
 
     /**

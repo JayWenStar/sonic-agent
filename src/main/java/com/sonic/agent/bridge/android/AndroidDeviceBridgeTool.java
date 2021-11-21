@@ -5,8 +5,11 @@ import com.android.ddmlib.*;
 import com.sonic.agent.tools.DownImageTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.Session;
@@ -18,16 +21,22 @@ import java.util.concurrent.TimeUnit;
  * @author ZhouYiXun
  * @des ADB工具类
  * @date 2021/08/16 19:26
+ *
+ * @updater chenwenjie.star
+ * 更改了启动逻辑
  */
 @ConditionalOnProperty(value = "modules.android.enable", havingValue = "true")
-@DependsOn({"androidThreadPoolInit", "rabbitMsgInit", "nettyMsgInit"})
+@DependsOn({"androidThreadPoolInit", "rocketMQTemplate", "rocketMQConfig", "nettyMsgInit"})
 @Component
-public class AndroidDeviceBridgeTool {
+public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefreshedEvent> {
     private static final Logger logger = LoggerFactory.getLogger(AndroidDeviceBridgeTool.class);
     private static AndroidDebugBridge androidDebugBridge = null;
-    private static AndroidDeviceStatusListener androidDeviceStatusListener = new AndroidDeviceStatusListener();
 
-    public AndroidDeviceBridgeTool() {
+    @Autowired
+    private AndroidDeviceStatusListener androidDeviceStatusListener;
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
         logger.info("开启安卓相关功能");
         init();
     }
@@ -55,7 +64,7 @@ public class AndroidDeviceBridgeTool {
      * @des 定义方法
      * @date 2021/8/16 19:36
      */
-    public static void init() {
+    public void init() {
         //获取系统SDK路径
         String systemADBPath = getADBPathFromSystemEnv();
         //添加设备上下线监听
