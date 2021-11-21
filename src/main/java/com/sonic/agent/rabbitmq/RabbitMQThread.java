@@ -48,8 +48,8 @@ public class RabbitMQThread {
                     if (!msgQueue.isEmpty()) {
                         JSONObject m = msgQueue.poll();
                         m.put("agentId", AgentTool.agentId);
-                        rabbitTemplate.convertAndSend("DataExchange", "data"
-                                , m);
+                        // todo rocketmq
+                        rabbitTemplate.convertAndSend("DataExchange", "data", m);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

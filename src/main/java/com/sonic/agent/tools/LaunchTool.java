@@ -31,6 +31,7 @@ public class LaunchTool implements ApplicationRunner {
         JSONObject auth = new JSONObject();
         auth.put("msg", "auth");
         auth.put("key", key);
+        // rocketmq
         rabbitTemplate.convertAndSend("DataExchange", "data", auth);
     }
 

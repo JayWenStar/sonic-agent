@@ -59,6 +59,7 @@ public class AndroidTests {
             } else {
                 //延时队列
                 jsonObject.put("wait", wait);
+                // todo rocketmq
                 rabbitTemplate.convertAndSend("TaskDirectExchange", key, jsonObject);
                 logger.info("进入延时队列:" + jsonObject);
             }

@@ -11,6 +11,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 /**
  * @author ZhouYiXun
  * @des rabbitmq监听配置
+ * todo 换成rabbitmq
  * @date 2021/8/23 19:26
  */
 @Configuration

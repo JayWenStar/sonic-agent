@@ -20,8 +20,8 @@ import java.util.UUID;
  *
  * rabbitmq配置类
  * todo 之后会换成RocketMq
+ *
  */
-
 @Configuration
 public class RabbitQueueConfig {
     private final Logger logger = LoggerFactory.getLogger(RabbitQueueConfig.class);
@@ -35,26 +35,40 @@ public class RabbitQueueConfig {
         return queueId;
     }
 
+    /**
+     * 消息-交换机
+     */
     @Bean("MsgDirectExchange")
     public DirectExchange MsgDirectExchange() {
         return new DirectExchange("MsgDirectExchange", true, false);
     }
 
+    /**
+     * 消息-队列
+     */
     @Bean("MsgQueue")
     public Queue MsgQueue() {
         return new Queue("MsgQueue-" + key, true);
     }
 
+    /**
+     * 任务-交换机
+     */
     @Bean("TaskDirectExchange")
     public DirectExchange TaskDirectExchange() {
         return new DirectExchange("TaskDirectExchange", true, false);
     }
 
+    /**
+     * 任务-队列
+     */
     @Bean("TaskQueue")
     public Queue TaskQueue() {
         Map<String, Object> params = new HashMap<>();
         params.put("x-message-ttl", 1000 * 60 * 5);
+        // 绑定死信交换机
         params.put("x-dead-letter-exchange", "MsgDirectExchange");
+        // 绑定死信交换机路由key
         params.put("x-dead-letter-routing-key", key);
         return QueueBuilder.durable("TaskQueue-" + key).withArguments(params).build();
     }
@@ -85,13 +99,13 @@ public class RabbitQueueConfig {
             }
         });
 
-        rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) ->
+        rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
                 logger.info("ConfirmCallback: 消息：" + message + "\n" +
                         "回应码：" + replyCode + "\n" +
                         "回应信息：" + replyText + "\n" +
                         "交换机：" + exchange + "\n" +
-                        "路由键：" + routingKey));
-
+                        "路由键：" + routingKey);
+        });
         return rabbitTemplate;
     }
 
