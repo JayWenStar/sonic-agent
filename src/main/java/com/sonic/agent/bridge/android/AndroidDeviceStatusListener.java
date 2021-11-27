@@ -57,9 +57,6 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
 
         // todo 这里最好用远程调用
         NettyThreadPool.send(deviceDetail);
-
-        // todo 确认无误后删除
-        // RabbitMQThread.send(deviceDetail);
     }
 
     @Override

@@ -15,6 +15,7 @@ import com.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import com.sonic.agent.bridge.android.AndroidDeviceThreadPool;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
+import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.maps.HandlerMap;
 import com.sonic.agent.maps.WebSocketSessionMap;
 import com.sonic.agent.tools.MiniCapTool;
@@ -332,7 +333,7 @@ public class AndroidWSServer {
                 AndroidDeviceBridgeTool.pressKey(udIdMap.get(session), msg.getInteger("detail"));
                 break;
             case "debug":
-                AndroidStepHandler androidStepHandler;
+                AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(session.getId());;
                 try {
                     if (msg.getString("detail").equals("tap")) {
                         String xy = msg.getString("point");
@@ -359,7 +360,6 @@ public class AndroidWSServer {
                     e.printStackTrace();
                 }
                 if (msg.getString("detail").equals("install")) {
-                    androidStepHandler = HandlerMap.getAndroidMap().get(session.getId());
                     AndroidStepHandler finalAndroidStepHandler = androidStepHandler;
                     AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
                         JSONObject result = new JSONObject();
@@ -428,9 +428,8 @@ public class AndroidWSServer {
                     jsonDebug.put("sessionId", session.getId());
                     jsonDebug.put("caseId", msg.getInteger("caseId"));
 
+                    // todo 最好改成远程调用
                     rocketMQTemplate.convertAndSend(rocketMQConfig.getTopic().getTestDataTopic(), jsonDebug);
-                    // todo 确认无误后删除
-                    // RabbitMQThread.send(jsonDebug);
                 }
                 break;
         }

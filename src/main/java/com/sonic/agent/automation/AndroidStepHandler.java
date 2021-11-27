@@ -1,6 +1,5 @@
 package com.sonic.agent.automation;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;
@@ -13,17 +12,16 @@ import com.sonic.agent.interfaces.StepType;
 import com.sonic.agent.maps.AndroidPasswordMap;
 import com.sonic.agent.tools.DownImageTool;
 import com.sonic.agent.tools.LogTool;
-import com.sonic.agent.interfaces.PlatformType;
 import com.sonic.agent.tools.PortTool;
 import com.sonic.agent.tools.UploadTools;
-import io.appium.java_client.*;
+import io.appium.java_client.MultiTouchAction;
+import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.AndroidStartScreenRecordingOptions;
 import io.appium.java_client.android.appmanagement.AndroidInstallApplicationOptions;
 import io.appium.java_client.android.appmanagement.AndroidTerminateApplicationOptions;
 import io.appium.java_client.android.nativekey.AndroidKey;
 import io.appium.java_client.android.nativekey.KeyEvent;
-import io.appium.java_client.appmanagement.BaseTerminateApplicationOptions;
 import io.appium.java_client.remote.AndroidMobileCapabilityType;
 import io.appium.java_client.remote.AutomationName;
 import io.appium.java_client.remote.MobileCapabilityType;
@@ -35,8 +33,6 @@ import org.jsoup.nodes.Document;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.FileCopyUtils;
 
@@ -52,9 +48,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.testng.Assert.*;
 
 /**
- * @author ZhouYiXun
- * @des 安卓自动化处理类
- * @date 2021/8/16 20:10
+ * @author   ZhouYiXun
+ * @updater  chenwenjie.star
+ * @des      安卓自动化处理类
+ * @date     2021/8/16 20:10
  */
 public class AndroidStepHandler {
     public LogTool log = new LogTool();
@@ -136,6 +133,7 @@ public class AndroidStepHandler {
             androidDriver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
             log.sendStepLog(StepType.PASS, "连接设备驱动成功", "");
         } catch (Exception e) {
+            e.printStackTrace();
             log.sendStepLog(StepType.ERROR, "连接设备驱动失败！", "");
             //测试标记为失败
             setResultDetailStatus(ResultDetailStatus.FAIL);
@@ -216,6 +214,16 @@ public class AndroidStepHandler {
         }
     }
 
+    /**
+     * 强制设置测试状态
+     *
+     * @author chenwenjie.star
+     * @param status  {@link ResultDetailStatus}
+     */
+    public void setResultDetailStatusForce(int status) {
+        this.status = status;
+    }
+
     public void sendStatus() {
         log.sendStatusLog(status);
     }
@@ -227,7 +235,7 @@ public class AndroidStepHandler {
 
     //调试每次重设状态
     public void resetResultDetailStatus() {
-        status = 1;
+        status = ResultDetailStatus.PASS;
     }
 
     /**

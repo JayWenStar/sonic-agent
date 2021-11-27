@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author chenwenjie.star
  * @date 2021/11/26 12:21 上午
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
 public class OutputSocketThread extends Thread {

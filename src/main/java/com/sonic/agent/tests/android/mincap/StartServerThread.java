@@ -21,7 +21,6 @@ import java.util.concurrent.Semaphore;
  * @author chenwenjie.star
  * @date 2021/11/25 8:35 下午
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
 public class StartServerThread extends Thread {

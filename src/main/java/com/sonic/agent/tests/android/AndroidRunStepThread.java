@@ -2,10 +2,7 @@ package com.sonic.agent.tests.android;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.automation.AndroidStepHandler;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -24,11 +21,11 @@ public class AndroidRunStepThread extends Thread {
     @Setter(value = AccessLevel.NONE)
     public final static String ANDROID_RUN_STEP_TASK_PRE = "android-run-step-task-%s";
 
-    private final AndroidTaskBootThread androidTaskBootThread;
+    private final AndroidTestTaskBootThread androidTestTaskBootThread;
 
-    public AndroidRunStepThread(AndroidTaskBootThread androidTaskBootThread) {
-        this.androidTaskBootThread = androidTaskBootThread;
-        String udId = androidTaskBootThread.getUdId();
+    public AndroidRunStepThread(AndroidTestTaskBootThread androidTestTaskBootThread) {
+        this.androidTestTaskBootThread = androidTestTaskBootThread;
+        String udId = androidTestTaskBootThread.getUdId();
 
         this.setDaemon(true);
         this.setName(String.format(ANDROID_RUN_STEP_TASK_PRE, udId));
@@ -39,8 +36,8 @@ public class AndroidRunStepThread extends Thread {
 
         // todo 等待性能线程准备
 
-        JSONObject jsonObject = androidTaskBootThread.getJsonObject();
-        AndroidStepHandler androidStepHandler = androidTaskBootThread.getAndroidStepHandler();
+        JSONObject jsonObject = androidTestTaskBootThread.getJsonObject();
+        AndroidStepHandler androidStepHandler = androidTestTaskBootThread.getAndroidStepHandler();
         List<JSONObject> steps = jsonObject.getJSONArray("steps").toJavaList(JSONObject.class);
 
         for (JSONObject step : steps) {

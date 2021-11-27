@@ -1,4 +1,4 @@
-package com.sonic.agent.rabbitmq.enums;
+package com.sonic.agent.rocketmq.enums;
 
 /**
  * @author chenwenjie.star

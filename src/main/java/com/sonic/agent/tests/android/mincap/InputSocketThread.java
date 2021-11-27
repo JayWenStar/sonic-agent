@@ -21,7 +21,6 @@ import java.util.Queue;
  * @author chenwenjie.star
  * @date 2021/11/25 11:52 下午
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
 public class InputSocketThread extends Thread {

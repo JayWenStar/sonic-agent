@@ -145,7 +145,7 @@ public class AndroidTaskManager {
      * @param udid  设备序列号
      */
     public static void forceStopThreadByUdId(String udid) {
-        String key = String.format(AndroidTaskBootThread.ANDROID_BOOT_TASK_PRE, udid);
+        String key = String.format(AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE, udid);
         // 停止boot线程
         Thread bootThread = bootThreadsMap.get(key);
         if (bootThread != null) {

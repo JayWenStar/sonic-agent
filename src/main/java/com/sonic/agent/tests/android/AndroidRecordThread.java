@@ -6,6 +6,8 @@ import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import com.sonic.agent.cv.RecordHandler;
 import com.sonic.agent.tools.MiniCapTool;
 import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bytedeco.javacv.FrameRecorder;
@@ -14,7 +16,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -23,17 +24,19 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author chenwenjie.star
  * @date 2021/11/25 7:38 下午
  */
+@EqualsAndHashCode(callSuper = true)
 @Slf4j
+@Data
 public class AndroidRecordThread extends Thread {
 
     @Setter(value = AccessLevel.NONE)
     public final static String ANDROID_RECORD_TASK_PRE = "android-record-task-%s";
 
-    private final AndroidTaskBootThread androidTaskBootThread;
+    private final AndroidTestTaskBootThread androidTestTaskBootThread;
 
-    public AndroidRecordThread(AndroidTaskBootThread androidTaskBootThread) {
-        this.androidTaskBootThread = androidTaskBootThread;
-        String udId = androidTaskBootThread.getUdId();
+    public AndroidRecordThread(AndroidTestTaskBootThread androidTestTaskBootThread) {
+        this.androidTestTaskBootThread = androidTestTaskBootThread;
+        String udId = androidTestTaskBootThread.getUdId();
 
         this.setDaemon(true);
         this.setName(String.format(ANDROID_RECORD_TASK_PRE, udId));
@@ -42,9 +45,9 @@ public class AndroidRecordThread extends Thread {
 
     @Override
     public void run() {
-        AndroidStepHandler androidStepHandler = androidTaskBootThread.getAndroidStepHandler();
-        AndroidRunStepThread runStepThread = androidTaskBootThread.getRunStepThread();
-        String udId = androidTaskBootThread.getUdId();
+        AndroidStepHandler androidStepHandler = androidTestTaskBootThread.getAndroidStepHandler();
+        AndroidRunStepThread runStepThread = androidTestTaskBootThread.getRunStepThread();
+        String udId = androidTestTaskBootThread.getUdId();
 
         Boolean isSupportRecord = true;
         String manufacturer = AndroidDeviceBridgeTool.getIDeviceByUdId(udId).getProperty(IDevice.PROP_DEVICE_MANUFACTURER);

@@ -5,12 +5,10 @@ import com.sonic.agent.automation.AndroidStepHandler;
 import com.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.config.SonicConfig;
-import com.sonic.agent.rabbitmq.enums.MessageDelayLevel;
+import com.sonic.agent.interfaces.ResultDetailStatus;
+import com.sonic.agent.rocketmq.enums.MessageDelayLevel;
 import com.sonic.agent.tools.SpringTool;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.messaging.support.MessageBuilder;
@@ -19,18 +17,18 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 /**
- * Android测试任务线程，会用 {@link Thread#stop()} 来强制停止任务
+ * Android测试任务线程，会用 {@link Thread#interrupt()} 来强制停止任务
  *
  * @author chenwenjie.star
  * @date 2021/11/24 6:15 下午
  */
-@EqualsAndHashCode(callSuper = true)
 @Slf4j
-@Data
-public class AndroidTaskBootThread extends Thread {
+@Getter
+@Setter
+public class AndroidTestTaskBootThread extends Thread {
 
     @Setter(value = AccessLevel.NONE)
-    public final static String ANDROID_BOOT_TASK_PRE = "android-boot-task-%s";
+    public final static String ANDROID_TEST_TASK_BOOT_PRE = "android-test-task-boot-%s";
 
     /**
      * 控制不同线程执行的信号量
@@ -69,13 +67,13 @@ public class AndroidTaskBootThread extends Thread {
      */
     private String udId;
 
-    public AndroidTaskBootThread(JSONObject jsonObject, AndroidStepHandler androidStepHandler) {
+    public AndroidTestTaskBootThread(JSONObject jsonObject, AndroidStepHandler androidStepHandler) {
         this.androidStepHandler = androidStepHandler;
         this.jsonObject = jsonObject;
         this.udId = jsonObject.getJSONObject("device").getString("udId");
 
         // 比如：test-task-thread-af80d1e4
-        this.setName(String.format(ANDROID_BOOT_TASK_PRE, udId));
+        this.setName(String.format(ANDROID_TEST_TASK_BOOT_PRE, udId));
         this.setDaemon(true);
     }
 
@@ -88,7 +86,6 @@ public class AndroidTaskBootThread extends Thread {
 
         String udId = jsonObject.getJSONObject("device").getString("udId");
         String key = sonicConfig.getAgent().getKey();
-        List<JSONObject> steps = jsonObject.getJSONArray("steps").toJavaList(JSONObject.class);
 
         int wait = jsonObject.getInteger("wait");
         if (!AndroidDeviceLocalStatus.startTest(udId)) {
@@ -103,11 +100,9 @@ public class AndroidTaskBootThread extends Thread {
                 rocketMQTemplate.syncSend(
                         rocketMQConfig.getTopic().getTestTaskTopic() + ":" + key,
                         MessageBuilder.withPayload(jsonObject).build(),
-                        MessageDelayLevel.TIME_5M.level,
-                        rocketMQTemplate.getProducer().getSendMsgTimeout()
+                        rocketMQTemplate.getProducer().getSendMsgTimeout(),
+                        MessageDelayLevel.TIME_1M.level
                 );
-                // todo 确认无误就删掉
-                // rabbitTemplate.convertAndSend("TaskDirectExchange", key, jsonObject);
                 log.info("进入延时队列:" + jsonObject);
             }
             return;

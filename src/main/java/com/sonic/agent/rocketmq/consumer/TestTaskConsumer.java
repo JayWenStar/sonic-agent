@@ -1,4 +1,4 @@
-package com.sonic.agent.rabbitmq.consumer;
+package com.sonic.agent.rocketmq.consumer;
 
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;
@@ -8,6 +8,7 @@ import com.sonic.agent.bridge.android.AndroidDeviceThreadPool;
 import com.sonic.agent.bridge.ios.LibIMobileDeviceTool;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.PlatformType;
+import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.maps.AndroidPasswordMap;
 import com.sonic.agent.maps.HandlerMap;
 import com.sonic.agent.tests.android.AndroidTests;
@@ -30,8 +31,8 @@ import java.util.List;
 @Slf4j
 @Component
 @RocketMQMessageListener(
-        topic = "${rocketmq.topic.test-data-topic}",
-        consumerGroup = "${rocketmq.group.test-data-group}",
+        topic = "${rocketmq.topic.test-task-topic}",
+        consumerGroup = "${rocketmq.group.test-task-group}",
         selectorExpression = "${sonic.agent.key}"
 )
 public class TestTaskConsumer implements RocketMQListener<JSONObject> {
@@ -71,7 +72,6 @@ public class TestTaskConsumer implements RocketMQListener<JSONObject> {
                         AndroidPasswordMap.getMap().put(jsonObject.getString("udId")
                                 , jsonObject.getString("pwd"));
                         AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(jsonObject.getString("sessionId"));
-                        androidStepHandler.resetResultDetailStatus();
                         androidStepHandler.setGlobalParams(jsonObject.getJSONObject("gp"));
                         List<JSONObject> steps = jsonObject.getJSONArray("steps").toJavaList(JSONObject.class);
                         for (JSONObject step : steps) {
@@ -81,6 +81,7 @@ public class TestTaskConsumer implements RocketMQListener<JSONObject> {
                                 break;
                             }
                         }
+                        androidStepHandler.setResultDetailStatus(ResultDetailStatus.PASS);
                         androidStepHandler.sendStatus();
                     }
                     break;

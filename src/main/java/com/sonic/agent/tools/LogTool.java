@@ -2,13 +2,12 @@ package com.sonic.agent.tools;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.config.RocketMQConfig;
+import com.sonic.agent.config.SonicConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.interfaces.StepType;
 import com.sonic.agent.maps.WebSocketSessionMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import javax.websocket.Session;
 import java.io.IOException;
@@ -21,20 +20,24 @@ import java.util.Date;
  * @date 2021/8/16 19:54
  */
 @Slf4j
-@Component
 public class LogTool {
     public String sessionId = "";
     public String type;
     public int caseId = 0;
     public int resultId = 0;
     public String udId = "";
-
-    @Autowired
     private RocketMQTemplate rocketMQTemplate;
-    @Autowired
     private RocketMQConfig rocketMQConfig;
 
+    public LogTool() {
+        this.rocketMQTemplate = SpringTool.getBean(RocketMQTemplate.class);
+        this.rocketMQConfig= SpringTool.getBean(RocketMQConfig.class);
+    }
+
+
     /**
+     * todo 最好改成远程调用
+     *
      * @param message
      * @return void
      * @author ZhouYiXun
@@ -46,6 +49,7 @@ public class LogTool {
         message.put("cid", caseId);
         message.put("rid", resultId);
         message.put("udId", udId);
+        message.put("agentId", AgentTool.agentId);
         if (type.equals(DeviceStatus.DEBUGGING)) {
             sendToWebSocket(WebSocketSessionMap.getMap().get(sessionId), message);
         }
@@ -65,8 +69,6 @@ public class LogTool {
     private void sendToServer(JSONObject message) {
         message.put("time", new Date());
         rocketMQTemplate.convertAndSend(rocketMQConfig.getTopic().getTestDataTopic(), message);
-        // todo 确认无误后删除
-        // RabbitMQThread.send(message);
     }
 
     /**

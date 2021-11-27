@@ -3,6 +3,7 @@ package com.sonic.agent.tests.android;
 import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.automation.AndroidStepHandler;
 import com.sonic.agent.interfaces.DeviceStatus;
+import com.sonic.agent.interfaces.ResultDetailStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -27,8 +28,13 @@ public class AndroidTests {
         JSONObject gp = jsonObject.getJSONObject("gp");
         androidStepHandler.setGlobalParams(gp);
         androidStepHandler.setTestMode(cid, rid, udId, DeviceStatus.TESTING, "");
+
+        androidStepHandler.setResultDetailStatusForce(ResultDetailStatus.RUNNING);
+        androidStepHandler.sendStatus();
+        androidStepHandler.resetResultDetailStatus();
+
         // 启动任务
-        AndroidTaskBootThread bootThread = new AndroidTaskBootThread(jsonObject, androidStepHandler);
+        AndroidTestTaskBootThread bootThread = new AndroidTestTaskBootThread(jsonObject, androidStepHandler);
         AndroidTaskManager.startBootThread(bootThread);
         // todo 远程调用 or 消息回调
         // todo 考虑下如果在这之后停止服务器

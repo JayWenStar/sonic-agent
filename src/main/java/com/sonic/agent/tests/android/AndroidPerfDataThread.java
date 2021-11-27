@@ -1,10 +1,7 @@
 package com.sonic.agent.tests.android;
 
 import com.sonic.agent.automation.AndroidStepHandler;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,11 +18,11 @@ public class AndroidPerfDataThread extends Thread {
     @Setter(value = AccessLevel.NONE)
     public final static String ANDROID_PERF_DATA_TASK_PRE = "android-perf-data-task-%s";
 
-    private final AndroidTaskBootThread androidTaskBootThread;
+    private final AndroidTestTaskBootThread androidTestTaskBootThread;
 
-    public AndroidPerfDataThread(AndroidTaskBootThread androidTaskBootThread) {
-        this.androidTaskBootThread = androidTaskBootThread;
-        String udId = androidTaskBootThread.getUdId();
+    public AndroidPerfDataThread(AndroidTestTaskBootThread androidTestTaskBootThread) {
+        this.androidTestTaskBootThread = androidTestTaskBootThread;
+        String udId = androidTestTaskBootThread.getUdId();
 
         this.setDaemon(true);
         this.setName(String.format(ANDROID_PERF_DATA_TASK_PRE, udId));
@@ -37,8 +34,8 @@ public class AndroidPerfDataThread extends Thread {
     @Override
     public void run() {
 
-        AndroidStepHandler androidStepHandler = androidTaskBootThread.getAndroidStepHandler();
-        AndroidRunStepThread runStepThread = androidTaskBootThread.getRunStepThread();
+        AndroidStepHandler androidStepHandler = androidTestTaskBootThread.getAndroidStepHandler();
+        AndroidRunStepThread runStepThread = androidTestTaskBootThread.getRunStepThread();
 
         int tryTime = 0;
         while (runStepThread.isAlive()) {
