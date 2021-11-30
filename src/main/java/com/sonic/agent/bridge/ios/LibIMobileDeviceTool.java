@@ -2,6 +2,7 @@ package com.sonic.agent.bridge.ios;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.config.RocketMQConfig;
+import com.sonic.agent.interfaces.PlatformType;
 import com.sonic.agent.maps.IOSDeviceManagerMap;
 import com.sonic.agent.netty.NettyThreadPool;
 import com.sonic.agent.tools.ProcessCommandTool;
@@ -93,13 +94,13 @@ public class LibIMobileDeviceTool implements ApplicationContextAware {
 
     public static void sendOnlineStatus(String udId) {
         JSONObject deviceStatus = new JSONObject();
-        deviceStatus.put("msg", "deviceStatus");
+        deviceStatus.put("msg", "deviceDetail");
         deviceStatus.put("serialNum", udId);
         deviceStatus.put("name", getDeviceNameByUdId(udId));
         deviceStatus.put("deviceName", getProductTypeByUdId(udId));
         deviceStatus.put("status", "ONLINE");
         deviceStatus.put("api", "无");
-        deviceStatus.put("platform", "IOS");
+        deviceStatus.put("platform", PlatformType.IOS);
         deviceStatus.put("version", getProductVersionByUdId(udId));
         deviceStatus.put("size", "未知");
         deviceStatus.put("cpu", getCpuByUdId(udId));
