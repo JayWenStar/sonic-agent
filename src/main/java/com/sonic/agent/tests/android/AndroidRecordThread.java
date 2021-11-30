@@ -29,17 +29,19 @@ import java.util.concurrent.atomic.AtomicReference;
 @Data
 public class AndroidRecordThread extends Thread {
 
+    /**
+     * 占用符逻辑参考：{@link AndroidTestTaskBootThread#ANDROID_TEST_TASK_BOOT_PRE}
+     */
     @Setter(value = AccessLevel.NONE)
-    public final static String ANDROID_RECORD_TASK_PRE = "android-record-task-%s";
+    public final static String ANDROID_RECORD_TASK_PRE = "android-record-task-%s-%s-%s";
 
     private final AndroidTestTaskBootThread androidTestTaskBootThread;
 
     public AndroidRecordThread(AndroidTestTaskBootThread androidTestTaskBootThread) {
         this.androidTestTaskBootThread = androidTestTaskBootThread;
-        String udId = androidTestTaskBootThread.getUdId();
 
         this.setDaemon(true);
-        this.setName(String.format(ANDROID_RECORD_TASK_PRE, udId));
+        this.setName(androidTestTaskBootThread.formatThreadName(ANDROID_RECORD_TASK_PRE));
     }
 
 
@@ -76,7 +78,7 @@ public class AndroidRecordThread extends Thread {
                 }
             } else {
                 MiniCapTool miniCapTool = new MiniCapTool();
-                miniCapPro = miniCapTool.start(udId, banner, imgList, "high", -1, null);
+                miniCapPro = miniCapTool.start(udId, banner, imgList, "high", -1, null, androidTestTaskBootThread);
             }
             int w = 0;
             while (w < 10 && (runStepThread.isAlive())) {

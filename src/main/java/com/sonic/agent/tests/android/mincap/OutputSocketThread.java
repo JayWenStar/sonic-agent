@@ -1,6 +1,7 @@
 package com.sonic.agent.tests.android.mincap;
 
 import com.alibaba.fastjson.JSONObject;
+import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,8 +26,11 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 public class OutputSocketThread extends Thread {
 
+    /**
+     * 占用符逻辑参考：{@link AndroidTestTaskBootThread#ANDROID_TEST_TASK_BOOT_PRE}
+     */
     @Setter(value = AccessLevel.NONE)
-    public final static String ANDROID_OUTPUT_SOCKET_PRE = "android-output-socket-task-%s";
+    public final static String ANDROID_OUTPUT_SOCKET_PRE = "android-output-socket-task-%s-%s-%s";
 
     private InputSocketThread sendImg;
 
@@ -40,22 +44,24 @@ public class OutputSocketThread extends Thread {
 
     private String udId;
 
+    private AndroidTestTaskBootThread androidTestTaskBootThread;
+
     public OutputSocketThread(
             InputSocketThread sendImg,
             AtomicReference<String[]> banner,
             AtomicReference<List<byte[]>> imgList,
             Session session,
-            String pic,
-            String udId
+            String pic
     ) {
         this.sendImg = sendImg;
         this.banner = banner;
         this.imgList = imgList;
         this.session = session;
         this.pic = pic;
+        this.androidTestTaskBootThread = sendImg.getAndroidTestTaskBootThread();
 
         this.setDaemon(true);
-        this.setName(String.format(ANDROID_OUTPUT_SOCKET_PRE, udId));
+        this.setName(androidTestTaskBootThread.formatThreadName(ANDROID_OUTPUT_SOCKET_PRE));
     }
 
     @Override

@@ -18,17 +18,19 @@ import java.util.List;
 @Slf4j
 public class AndroidRunStepThread extends Thread {
 
+    /**
+     * 占用符逻辑参考：{@link AndroidTestTaskBootThread#ANDROID_TEST_TASK_BOOT_PRE}
+     */
     @Setter(value = AccessLevel.NONE)
-    public final static String ANDROID_RUN_STEP_TASK_PRE = "android-run-step-task-%s";
+    public final static String ANDROID_RUN_STEP_TASK_PRE = "android-run-step-task-%s-%s-%s";
 
     private final AndroidTestTaskBootThread androidTestTaskBootThread;
 
     public AndroidRunStepThread(AndroidTestTaskBootThread androidTestTaskBootThread) {
         this.androidTestTaskBootThread = androidTestTaskBootThread;
-        String udId = androidTestTaskBootThread.getUdId();
 
         this.setDaemon(true);
-        this.setName(String.format(ANDROID_RUN_STEP_TASK_PRE, udId));
+        this.setName(androidTestTaskBootThread.formatThreadName(ANDROID_RUN_STEP_TASK_PRE));
     }
 
     @Override

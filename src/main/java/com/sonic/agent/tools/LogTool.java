@@ -85,8 +85,8 @@ public class LogTool {
                 message.put("time", getDateToString());
                 session.getBasicRemote().sendText(message.toJSONString());
             } catch (IllegalStateException | IOException e) {
-                e.printStackTrace();
                 log.error(e.getMessage());
+                e.printStackTrace();
             }
         }
     }

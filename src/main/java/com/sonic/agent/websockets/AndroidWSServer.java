@@ -15,9 +15,9 @@ import com.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import com.sonic.agent.bridge.android.AndroidDeviceThreadPool;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
-import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.maps.HandlerMap;
 import com.sonic.agent.maps.WebSocketSessionMap;
+import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import com.sonic.agent.tools.MiniCapTool;
 import com.sonic.agent.tools.PortTool;
 import com.sonic.agent.tools.ProcessCommandTool;
@@ -92,6 +92,7 @@ public class AndroidWSServer {
                 HandlerMap.getAndroidMap().put(session.getId(), androidStepHandler);
             } catch (Exception e) {
                 log.error(e.getMessage());
+                e.printStackTrace();
                 result.put("status", "error");
                 result.put("detail", "初始化Driver失败！部分功能不可用！请联系管理员");
             } finally {
@@ -108,7 +109,11 @@ public class AndroidWSServer {
         AndroidDeviceBridgeTool.screen(iDevice, "abort");
         MiniCapTool miniCapTool = new MiniCapTool();
         AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
-        Thread miniCapThread = miniCapTool.start(udId, banner, null, "middle", -1, session);
+
+        Thread miniCapThread = miniCapTool.start(
+                udId, banner, null, "middle", -1, session,
+                new AndroidTestTaskBootThread().setUdId(udId)
+        );
         miniCapMap.put(session, miniCapThread);
 
         if (devicePlatformVersion < 10) {
@@ -178,6 +183,7 @@ public class AndroidWSServer {
     @OnError
     public void onError(Session session, Throwable error) {
         log.error(error.getMessage());
+        error.printStackTrace();
         JSONObject errMsg = new JSONObject();
         errMsg.put("msg", "error");
         sendText(session, errMsg.toJSONString());
@@ -276,7 +282,9 @@ public class AndroidWSServer {
                 MiniCapTool miniCapTool = new MiniCapTool();
                 AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
                 Thread miniCapThread = miniCapTool.start(
-                        udIdMap.get(session).getSerialNumber(), banner, null, msg.getString("detail"), -1, session);
+                        udIdMap.get(session).getSerialNumber(), banner, null, msg.getString("detail"), -1, session,
+                        new AndroidTestTaskBootThread().setUdId(udIdMap.get(session).getSerialNumber())
+                );
                 miniCapMap.put(session, miniCapThread);
                 JSONObject picFinish = new JSONObject();
                 picFinish.put("msg", "picFinish");
@@ -293,7 +301,10 @@ public class AndroidWSServer {
                     MiniCapTool miniCapTool = new MiniCapTool();
                     AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
                     Thread miniCapThread = miniCapTool.start(
-                            udIdMap.get(session).getSerialNumber(), banner, null, msg.getString("detail"), -1, session);
+                            udIdMap.get(session).getSerialNumber(), banner, null,
+                            msg.getString("detail"), -1, session,
+                            new AndroidTestTaskBootThread().setUdId(udIdMap.get(session).getSerialNumber())
+                    );
                     miniCapMap.put(session, miniCapThread);
                     JSONObject picFinish = new JSONObject();
                     picFinish.put("msg", "picFinish");
@@ -309,7 +320,10 @@ public class AndroidWSServer {
                 MiniCapTool miniCapTool = new MiniCapTool();
                 AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
                 Thread miniCapThread = miniCapTool.start(
-                        udIdMap.get(session).getSerialNumber(), banner, null, msg.getString("detail"), msg.getInteger("s"), session);
+                        udIdMap.get(session).getSerialNumber(), banner, null, msg.getString("detail"),
+                        msg.getInteger("s"), session,
+                        new AndroidTestTaskBootThread().setUdId(udIdMap.get(session).getSerialNumber())
+                );
                 miniCapMap.put(session, miniCapThread);
                 JSONObject picFinish = new JSONObject();
                 picFinish.put("msg", "picFinish");
@@ -389,6 +403,7 @@ public class AndroidWSServer {
                             }
                             if (handleDes.getE() != null) {
                                 log.error(handleDes.getE().getMessage());
+                                handleDes.getE().printStackTrace();
                                 JSONObject resultFail = new JSONObject();
                                 resultFail.put("msg", "treeFail");
                                 sendText(session, resultFail.toJSONString());
@@ -399,6 +414,7 @@ public class AndroidWSServer {
                             }
                         } catch (Throwable e) {
                             log.error(e.getMessage());
+                            e.printStackTrace();
                             JSONObject result = new JSONObject();
                             result.put("msg", "treeFail");
                             sendText(session, result.toJSONString());
@@ -441,6 +457,7 @@ public class AndroidWSServer {
                 session.getBasicRemote().sendText(message);
             } catch (IllegalStateException | IOException e) {
                 log.error("socket发送失败!连接已关闭！");
+                e.printStackTrace();
             }
         }
     }

@@ -2,10 +2,10 @@ package com.sonic.agent.tests.android.mincap;
 
 import com.android.ddmlib.IDevice;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
+import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import com.sonic.agent.tools.PortTool;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,8 +25,11 @@ import java.util.Queue;
 @Slf4j
 public class InputSocketThread extends Thread {
 
+    /**
+     * 占用符逻辑参考：{@link AndroidTestTaskBootThread#ANDROID_TEST_TASK_BOOT_PRE}
+     */
     @Setter(value = AccessLevel.NONE)
-    public final static String ANDROID_INPUT_SOCKET_PRE = "android-input-socket-task-%s";
+    public final static String ANDROID_INPUT_SOCKET_PRE = "android-input-socket-task-%s-%s-%s";
 
     private IDevice iDevice;
 
@@ -34,25 +37,22 @@ public class InputSocketThread extends Thread {
 
     private StartServerThread miniCapPro;
 
+    private AndroidTestTaskBootThread androidTestTaskBootThread;
+
     public InputSocketThread(IDevice iDevice, Queue<byte[]> dataQueue, StartServerThread miniCapPro) {
         this.iDevice = iDevice;
         this.dataQueue = dataQueue;
         this.miniCapPro = miniCapPro;
-        String udId = iDevice.getSerialNumber();
+        this.androidTestTaskBootThread = miniCapPro.getAndroidTestTaskBootThread();
+
 
         this.setDaemon(true);
-        this.setName(String.format(ANDROID_INPUT_SOCKET_PRE, udId));
+        this.setName(androidTestTaskBootThread.formatThreadName(ANDROID_INPUT_SOCKET_PRE));
     }
 
 
     @Override
     public void run() {
-        try {
-            miniCapPro.getDoneSemaphore().acquire();
-        } catch (InterruptedException e) {
-            log.error("mincap初始化出现异常！");
-            e.printStackTrace();
-        }
 
         int finalMiniCapPort = PortTool.getPort();
         AndroidDeviceBridgeTool.forward(iDevice, finalMiniCapPort, "minicap");

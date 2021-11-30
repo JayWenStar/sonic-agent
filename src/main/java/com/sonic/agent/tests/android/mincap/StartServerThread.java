@@ -5,6 +5,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
+import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,8 +26,11 @@ import java.util.concurrent.Semaphore;
 @Slf4j
 public class StartServerThread extends Thread {
 
+    /**
+     * 占用符逻辑参考：{@link AndroidTestTaskBootThread#ANDROID_TEST_TASK_BOOT_PRE}
+     */
     @Setter(value = AccessLevel.NONE)
-    public final static String ANDROID_START_MINCAP_SERVER_PRE = "android-start-mincap-server-task-%s";
+    public final static String ANDROID_START_MINCAP_SERVER_PRE = "android-start-mincap-server-task-%s-%s-%s";
 
     private IDevice iDevice;
 
@@ -38,18 +42,20 @@ public class StartServerThread extends Thread {
 
     private String udId;
 
-    private Semaphore doneSemaphore = new Semaphore(1);
+    private AndroidTestTaskBootThread androidTestTaskBootThread;
 
 
-    public StartServerThread(IDevice iDevice, String pic, int finalC, Session session) {
+    public StartServerThread(IDevice iDevice, String pic, int finalC, Session session,
+                             AndroidTestTaskBootThread androidTestTaskBootThread) {
         this.iDevice = iDevice;
         this.pic = pic;
         this.finalC = finalC;
         this.session = session;
         this.udId = iDevice.getSerialNumber();
+        this.androidTestTaskBootThread = androidTestTaskBootThread;
 
         this.setDaemon(true);
-        this.setName(String.format(ANDROID_START_MINCAP_SERVER_PRE, udId));
+        this.setName(androidTestTaskBootThread.formatThreadName(ANDROID_START_MINCAP_SERVER_PRE));
     }
 
     @Override
@@ -57,10 +63,8 @@ public class StartServerThread extends Thread {
         try {
             AndroidDeviceBridgeTool.startMiniCapServer(iDevice, pic, finalC, session);
             Thread.sleep(4000);
-            doneSemaphore.release();
         } catch (AdbCommandRejectedException | IOException | SyncException | TimeoutException | InterruptedException e) {
             e.printStackTrace();
-            doneSemaphore.release();
         }
     }
 }
