@@ -16,10 +16,12 @@ import java.io.IOException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import static com.sonic.agent.tools.AgentTool.sendText;
+
 /**
  * 启动mincap server线程
  *
- * @author chenwenjie.star
+ * @author Eason(master) & JayWenStar(slave)
  * @date 2021/11/25 8:35 下午
  */
 @Data
@@ -125,19 +127,6 @@ public class StartServerThread extends Thread {
             log.info("{} 设备miniCap启动异常！"
                     , iDevice.getSerialNumber());
             log.error(e.getMessage());
-        }
-    }
-
-    /**
-     * 与 {@link OutputSocketThread sendText} 保持一致
-     */
-    private void sendText(Session session, String message) {
-        synchronized (session) {
-            try {
-                session.getBasicRemote().sendText(message);
-            } catch (IllegalStateException | IOException e) {
-                log.error("WebSocket发送失败!连接已关闭！");
-            }
         }
     }
 

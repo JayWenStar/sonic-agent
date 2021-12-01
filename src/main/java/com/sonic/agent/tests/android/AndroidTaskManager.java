@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * Android测试任务线程管理
  *
- * @author chenwenjie.star
+ * @author Eason(master) & JayWenStar(slave)
  * @date 2021/11/25 10:53 上午
  */
 @Slf4j
@@ -74,6 +74,7 @@ public class AndroidTaskManager {
      * @param bootThread  boot线程
      */
     public static void addBootThread(String key, Thread bootThread) {
+        clearTerminatedThread();
         bootThreadsMap.put(key, bootThread);
     }
 
@@ -85,6 +86,7 @@ public class AndroidTaskManager {
      * @param childThread 线程
      */
     public static void addChildThread(String key, Thread childThread) {
+        clearTerminatedThread();
         if (childThreadsMap.containsKey(key)) {
             ConcurrentHashSet<Thread> threadsSet = childThreadsMap.get(key);
             if (CollectionUtils.isEmpty(threadsSet)) {
@@ -108,6 +110,7 @@ public class AndroidTaskManager {
      * @param set 线程set
      */
     public static void addChildThreadBatch(String key, ConcurrentHashSet<Thread> set) {
+        clearTerminatedThread();
         if (childThreadsMap.containsKey(key)) {
             ConcurrentHashSet<Thread> threadsSet = childThreadsMap.get(key);
             if (CollectionUtils.isEmpty(threadsSet)) {
@@ -133,7 +136,7 @@ public class AndroidTaskManager {
             v.interrupt();
             bootThreadsMap.remove(k);
         });
-        // 强制停止boot线程衍生的child线程，之后再删除
+        // 删除boot衍生的线程
         terminatedThread.forEach((key, value) -> {
             childThreadsMap.remove(key);
         });
@@ -144,8 +147,8 @@ public class AndroidTaskManager {
      *
      * @param udid  设备序列号
      */
-    public static void forceStopThreadByUdId(String udid) {
-        String key = String.format(AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE, udid);
+    public static void forceStopThreadByUdId(String resultId, String caseId, String udid) {
+        String key = String.format(AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE, resultId, caseId, udid);
         // 停止boot线程
         Thread bootThread = bootThreadsMap.get(key);
         if (bootThread != null) {

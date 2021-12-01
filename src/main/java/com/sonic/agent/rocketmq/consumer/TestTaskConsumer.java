@@ -121,7 +121,6 @@ public class TestTaskConsumer implements RocketMQListener<JSONObject> {
                         //取消本次测试
                         JSONObject subResultCount = new JSONObject();
                         subResultCount.put("rid", jsonObject.getInteger("rid"));
-                        // todo 新版本好像没有这块逻辑了
                         // todo 远程调用or事务
                         rocketMQTemplate.convertAndSend(
                                 rocketMQConfig.getTopic().getTestDataTopic(),

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * 安卓测试执行类
  *
- * @author chenwenjie.star
+ * @author Eason(master) & JayWenStar(slave)
  * @date 2021/11/23 20:15 下午
  */
 @Component

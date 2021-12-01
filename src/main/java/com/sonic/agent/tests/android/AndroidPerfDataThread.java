@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Android性能采集线程
  *
- * @author chenwenjie.star
+ * @author Eason(master) & JayWenStar(slave)
  * @date 2021/11/25 6:39 下午
  */
 @EqualsAndHashCode(callSuper = true)

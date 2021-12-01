@@ -16,11 +16,13 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.Queue;
 
+import static com.sonic.agent.tools.AgentTool.subByteArray;
+
 /**
  * mincap socket线程
  * 通过端口转发，将设备视频流转发到此Socket
  *
- * @author chenwenjie.star
+ * @author Eason(master) & JayWenStar(slave)
  * @date 2021/11/25 11:52 下午
  */
 @Data
@@ -106,15 +108,5 @@ public class InputSocketThread extends Thread {
         if (session != null) {
             MiniCapMap.getMap().remove(session);
         }
-    }
-
-    /**
-     * 跟 {@link OutputSocketThread} 的保持一致
-     */
-    private byte[] subByteArray(byte[] byte1, int start, int end) {
-        byte[] byte2;
-        byte2 = new byte[end - start];
-        System.arraycopy(byte1, start, byte2, 0, end - start);
-        return byte2;
     }
 }

@@ -43,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.sonic.agent.tools.AgentTool.sendText;
+
 @Component
 @ServerEndpoint(value = "/websockets/android/{key}/{udId}", configurator = MyEndpointConfigure.class)
 @Slf4j
@@ -466,6 +468,7 @@ public class AndroidWSServer {
                 break;
             case "pic": {
                 Thread old = MiniCapMap.getMap().get(session);
+                old.interrupt();
                 do {
                     try {
                         Thread.sleep(1000);
@@ -628,17 +631,6 @@ public class AndroidWSServer {
                     rocketMQTemplate.convertAndSend(rocketMQConfig.getTopic().getTestDataTopic(), jsonDebug);
                 }
                 break;
-        }
-    }
-
-    private void sendText(Session session, String message) {
-        synchronized (session) {
-            try {
-                session.getBasicRemote().sendText(message);
-            } catch (IllegalStateException | IOException e) {
-                log.error("WebSocket发送失败!连接已关闭！");
-                e.printStackTrace();
-            }
         }
     }
 

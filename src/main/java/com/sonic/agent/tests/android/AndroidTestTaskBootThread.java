@@ -20,7 +20,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Android测试任务线程，会用 {@link Thread#interrupt()} 来强制停止任务
  *
- * @author chenwenjie.star
+ * @author Eason(master) & JayWenStar(slave)
  * @date 2021/11/24 6:15 下午
  */
 @Slf4j

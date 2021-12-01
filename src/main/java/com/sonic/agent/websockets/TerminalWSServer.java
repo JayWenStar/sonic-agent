@@ -19,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static com.sonic.agent.tools.AgentTool.sendText;
+
 /**
  * @author ZhouYiXun
  * @des
@@ -206,15 +208,5 @@ public class TerminalWSServer {
             e.printStackTrace();
         }
         logger.info(session.getId() + "退出");
-    }
-
-    private void sendText(Session session, String message) {
-        synchronized (session) {
-            try {
-                session.getBasicRemote().sendText(message);
-            } catch (IllegalStateException | IOException e) {
-                logger.error("WebSocket发送失败!连接已关闭！");
-            }
-        }
     }
 }

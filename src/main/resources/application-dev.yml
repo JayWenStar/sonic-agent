@@ -12,11 +12,11 @@ modules:
   android:
     enable: true
   ios:
-    enable: false
+    enable: true
     wda-bundle-id: com.sonic.wda
     wda-ipa-name: sonic-wda.ipa
   webview:
-    enable: false
+    enable: true
     chrome-driver-debug-port: 7778
     chrome-driver-path: "/Applications/Google Chrome.app/Contents/MacOS/chromedriver"
 

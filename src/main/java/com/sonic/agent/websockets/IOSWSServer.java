@@ -28,6 +28,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.sonic.agent.tools.AgentTool.sendText;
+
 @Component
 @ServerEndpoint(value = "/websockets/ios/{key}/{udId}", configurator = MyEndpointConfigure.class)
 public class IOSWSServer {
@@ -219,16 +221,6 @@ public class IOSWSServer {
 //                    NettyThreadPool.send(jsonDebug);
 //                }
                 break;
-        }
-    }
-
-    private void sendText(Session session, String message) {
-        synchronized (session) {
-            try {
-                session.getBasicRemote().sendText(message);
-            } catch (IllegalStateException | IOException e) {
-                logger.error("webSocket发送失败!连接已关闭！");
-            }
         }
     }
 

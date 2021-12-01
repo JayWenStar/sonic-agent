@@ -16,6 +16,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.sonic.agent.tools.AgentTool.sendText;
+
 /**
  * @author ZhouYiXun
  * @des
@@ -81,15 +83,5 @@ public class WebViewWSServer {
     @OnError
     public void onError(Session session, Throwable error) {
         logger.error(error.getMessage());
-    }
-
-    private void sendText(Session session, String message) {
-        synchronized (session) {
-            try {
-                session.getBasicRemote().sendText(message);
-            } catch (IllegalStateException | IOException e) {
-                logger.error("socket发送失败!连接已关闭！");
-            }
-        }
     }
 }
