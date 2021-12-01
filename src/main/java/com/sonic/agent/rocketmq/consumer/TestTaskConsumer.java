@@ -5,7 +5,7 @@ import com.android.ddmlib.IDevice;
 import com.sonic.agent.automation.AndroidStepHandler;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import com.sonic.agent.bridge.android.AndroidDeviceThreadPool;
-import com.sonic.agent.bridge.ios.LibIMobileDeviceTool;
+import com.sonic.agent.bridge.ios.TIDeviceTool;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.PlatformType;
 import com.sonic.agent.interfaces.ResultDetailStatus;
@@ -19,8 +19,15 @@ import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.testng.TestNG;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 测试任务消费
@@ -62,8 +69,8 @@ public class TestTaskConsumer implements RocketMQListener<JSONObject> {
                         }
                     }
                     if (jsonObject.getInteger("platform") == PlatformType.IOS) {
-                        if (LibIMobileDeviceTool.getDeviceList().contains(jsonObject.getString("udId"))) {
-                            LibIMobileDeviceTool.reboot(jsonObject.getString("udId"));
+                        if (TIDeviceTool.getDeviceList().contains(jsonObject.getString("udId"))) {
+                            TIDeviceTool.reboot(jsonObject.getString("udId"));
                         }
                     }
                     break;
@@ -86,6 +93,25 @@ public class TestTaskConsumer implements RocketMQListener<JSONObject> {
                     }
                     break;
                 case "suite":
+//                    List<JSONObject> cases = jsonObject.getJSONArray("cases").toJavaList(JSONObject.class);
+//                    TestNG tng = new TestNG();
+//                    List<XmlSuite> suiteList = new ArrayList<>();
+//                    XmlSuite xmlSuite = new XmlSuite();
+//                    for (JSONObject dataInfo : cases) {
+//                        XmlTest xmlTest = new XmlTest(xmlSuite);
+//                        Map<String, String> parameters = new HashMap<>();
+//                        parameters.put("dataInfo", dataInfo.toJSONString());
+//                        xmlTest.setParameters(parameters);
+//                        List<XmlClass> classes = new ArrayList<>();
+//                        classes.add(new XmlClass(AndroidTests.class));
+//                        xmlTest.setXmlClasses(classes);
+//                    }
+//                    suiteList.add(xmlSuite);
+//                    tng.setXmlSuites(suiteList);
+//                    tng.run();
+//                    break;
+
+
                     JSONObject device = jsonObject.getJSONObject("device");
                     if (AndroidDeviceBridgeTool.getIDeviceByUdId(device.getString("udId")) != null) {
                         AndroidPasswordMap.getMap().put(device.getString("udId")
@@ -95,6 +121,7 @@ public class TestTaskConsumer implements RocketMQListener<JSONObject> {
                         //取消本次测试
                         JSONObject subResultCount = new JSONObject();
                         subResultCount.put("rid", jsonObject.getInteger("rid"));
+                        // todo 新版本好像没有这块逻辑了
                         // todo 远程调用or事务
                         rocketMQTemplate.convertAndSend(
                                 rocketMQConfig.getTopic().getTestDataTopic(),

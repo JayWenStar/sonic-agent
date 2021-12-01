@@ -126,7 +126,7 @@ public class AndroidTestTaskBootThread extends Thread {
         if (!AndroidDeviceLocalStatus.startTest(udId)) {
             androidStepHandler.waitDevice(wait + 1);
             wait++;
-            if (wait >= 24) {
+            if (wait >= 30) {
                 androidStepHandler.waitDeviceTimeOut(udId);
                 androidStepHandler.sendStatus();
             } else {
@@ -138,7 +138,7 @@ public class AndroidTestTaskBootThread extends Thread {
                         rocketMQTemplate.getProducer().getSendMsgTimeout(),
                         MessageDelayLevel.TIME_1M.level
                 );
-                log.info("进入延时队列:" + jsonObject);
+                log.info("任务进入延时队列，1min后重试:" + jsonObject);
             }
             return;
         }

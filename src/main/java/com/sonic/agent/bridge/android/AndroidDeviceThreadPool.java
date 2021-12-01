@@ -1,5 +1,6 @@
 package com.sonic.agent.bridge.android;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.Executors;
  * todo 可以去掉了
  */
 @Configuration
+@ConditionalOnProperty(value = "modules.android.enable", havingValue = "true")
 public class AndroidDeviceThreadPool {
     public static ExecutorService cachedThreadPool;
 

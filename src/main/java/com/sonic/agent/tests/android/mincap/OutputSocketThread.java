@@ -214,12 +214,8 @@ public class OutputSocketThread extends Thread {
     }
 
     private byte[] subByteArray(byte[] byte1, int start, int end) {
-        byte[] byte2 = new byte[0];
-        try {
-            byte2 = new byte[end - start];
-        } catch (NegativeArraySizeException e) {
-            e.printStackTrace();
-        }
+        byte[] byte2;
+        byte2 = new byte[end - start];
         System.arraycopy(byte1, start, byte2, 0, end - start);
         return byte2;
     }
@@ -229,7 +225,7 @@ public class OutputSocketThread extends Thread {
             try {
                 session.getBasicRemote().sendBinary(ByteBuffer.wrap(message));
             } catch (IllegalStateException | IOException e) {
-                log.error("socket发送失败!连接已关闭！");
+                log.error("WebSocket发送失败!连接已关闭！");
             }
         }
     }
@@ -239,7 +235,7 @@ public class OutputSocketThread extends Thread {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IllegalStateException | IOException e) {
-                log.error("socket发送失败!连接已关闭！");
+                log.error("WebSocket发送失败!连接已关闭！");
             }
         }
     }

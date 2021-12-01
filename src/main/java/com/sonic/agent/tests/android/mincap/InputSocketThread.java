@@ -2,6 +2,7 @@ package com.sonic.agent.tests.android.mincap;
 
 import com.android.ddmlib.IDevice;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
+import com.sonic.agent.maps.MiniCapMap;
 import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import com.sonic.agent.tools.PortTool;
 import lombok.AccessLevel;
@@ -9,6 +10,7 @@ import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.websocket.Session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -39,10 +41,13 @@ public class InputSocketThread extends Thread {
 
     private AndroidTestTaskBootThread androidTestTaskBootThread;
 
-    public InputSocketThread(IDevice iDevice, Queue<byte[]> dataQueue, StartServerThread miniCapPro) {
+    private Session session;
+
+    public InputSocketThread(IDevice iDevice, Queue<byte[]> dataQueue, StartServerThread miniCapPro, Session session) {
         this.iDevice = iDevice;
         this.dataQueue = dataQueue;
         this.miniCapPro = miniCapPro;
+        this.session = session;
         this.androidTestTaskBootThread = miniCapPro.getAndroidTestTaskBootThread();
 
 
@@ -61,15 +66,17 @@ public class InputSocketThread extends Thread {
         try {
             capSocket = new Socket("localhost", finalMiniCapPort);
             inputStream = capSocket.getInputStream();
+            int len = 1024;
             while (miniCapPro.isAlive()) {
-                byte[] buffer;
-                int len = 0;
-                while (len == 0) {
-                    len = inputStream.available();
+                byte[] buffer = new byte[len];
+                int realLen;
+                realLen = inputStream.read(buffer);
+                if (buffer.length != realLen && realLen >= 0) {
+                    buffer = subByteArray(buffer, 0, realLen);
                 }
-                buffer = new byte[len];
-                inputStream.read(buffer);
-                dataQueue.add(buffer);
+                if (realLen >= 0) {
+                    dataQueue.offer(buffer);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -96,5 +103,18 @@ public class InputSocketThread extends Thread {
             }
         }
         AndroidDeviceBridgeTool.removeForward(iDevice, finalMiniCapPort, "minicap");
+        if (session != null) {
+            MiniCapMap.getMap().remove(session);
+        }
+    }
+
+    /**
+     * 跟 {@link OutputSocketThread} 的保持一致
+     */
+    private byte[] subByteArray(byte[] byte1, int start, int end) {
+        byte[] byte2;
+        byte2 = new byte[end - start];
+        System.arraycopy(byte1, start, byte2, 0, end - start);
+        return byte2;
     }
 }
