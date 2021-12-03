@@ -19,15 +19,8 @@ import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.testng.TestNG;
-import org.testng.xml.XmlClass;
-import org.testng.xml.XmlSuite;
-import org.testng.xml.XmlTest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 测试任务消费

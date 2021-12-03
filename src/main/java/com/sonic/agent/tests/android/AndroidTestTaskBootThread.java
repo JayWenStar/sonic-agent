@@ -5,16 +5,16 @@ import com.sonic.agent.automation.AndroidStepHandler;
 import com.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.config.SonicConfig;
-import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.rocketmq.enums.MessageDelayLevel;
 import com.sonic.agent.tools.SpringTool;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 
-import java.util.List;
 import java.util.concurrent.Semaphore;
 
 /**

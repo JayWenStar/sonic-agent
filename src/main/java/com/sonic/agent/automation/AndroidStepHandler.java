@@ -9,7 +9,6 @@ import com.sonic.agent.cv.*;
 import com.sonic.agent.interfaces.ErrorType;
 import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.interfaces.StepType;
-import com.sonic.agent.maps.AndroidPasswordMap;
 import com.sonic.agent.tools.DownImageTool;
 import com.sonic.agent.tools.LogTool;
 import com.sonic.agent.tools.PortTool;
@@ -43,7 +42,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.testng.Assert.*;
 

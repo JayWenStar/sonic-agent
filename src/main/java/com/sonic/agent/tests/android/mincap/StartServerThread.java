@@ -1,18 +1,17 @@
 package com.sonic.agent.tests.android.mincap;
 
 import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.*;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.websocket.Session;
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 

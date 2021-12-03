@@ -1,9 +1,6 @@
 package com.sonic.agent.automation;
 
-import com.google.common.collect.ImmutableMap;
 import com.sonic.agent.tools.PortTool;
-import com.sonic.agent.websockets.WebViewWSServer;
-import org.mitre.dsmiley.httpproxy.ProxyServlet;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -12,14 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.Servlet;
-import java.util.Map;
 
 /**
  * @author ZhouYiXun

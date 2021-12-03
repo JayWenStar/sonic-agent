@@ -2,7 +2,6 @@ package com.sonic.agent.tools;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.config.RocketMQConfig;
-import com.sonic.agent.config.SonicConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.interfaces.StepType;
 import com.sonic.agent.maps.WebSocketSessionMap;

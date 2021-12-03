@@ -2,7 +2,8 @@ package com.sonic.agent.websockets;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.*;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import com.sonic.agent.bridge.android.AndroidDeviceThreadPool;
 import org.slf4j.Logger;

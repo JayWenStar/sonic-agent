@@ -1,7 +1,10 @@
 package com.sonic.agent.tests.android;
 
 import com.sonic.agent.automation.AndroidStepHandler;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -1,6 +1,5 @@
 package com.sonic.agent.bridge.android;
 
-import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.*;
 import com.sonic.agent.tools.DownImageTool;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.Session;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
