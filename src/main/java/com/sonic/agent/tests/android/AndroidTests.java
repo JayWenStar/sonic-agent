@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.automation.AndroidStepHandler;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.interfaces.ResultDetailStatus;
+import com.sonic.agent.tests.TaskManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,7 @@ public class AndroidTests {
 
         // 启动任务
         AndroidTestTaskBootThread bootThread = new AndroidTestTaskBootThread(jsonObject, androidStepHandler);
-        AndroidTaskManager.startBootThread(bootThread);
+        TaskManager.startBootThread(bootThread);
         // todo 远程调用 or 消息回调
         // todo 考虑下如果在这之后停止服务器
     }

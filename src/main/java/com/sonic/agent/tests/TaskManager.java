@@ -1,6 +1,7 @@
-package com.sonic.agent.tests.android;
+package com.sonic.agent.tests;
 
 import cn.hutool.core.collection.ConcurrentHashSet;
+import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  * @date 2021/11/25 10:53 上午
  */
 @Slf4j
-public class AndroidTaskManager {
+public class TaskManager {
 
     /**
      * key是boot的线程名，value是boot线程本身
@@ -143,11 +144,9 @@ public class AndroidTaskManager {
     }
 
     /**
-     * 按照设备序列号强制停止手机正在执行的任务
-     *
-     * @param udid  设备序列号
+     * 根据 result_id、caseId、udId停止任务
      */
-    public static void forceStopThreadByUdId(String resultId, String caseId, String udid) {
+    public static void forceStopSuite(int resultId, int caseId, String udid) {
         String key = String.format(AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE, resultId, caseId, udid);
         // 停止boot线程
         Thread bootThread = bootThreadsMap.get(key);

@@ -2,7 +2,7 @@ package com.sonic.agent.tools;
 
 import com.android.ddmlib.IDevice;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
-import com.sonic.agent.tests.android.AndroidTaskManager;
+import com.sonic.agent.tests.TaskManager;
 import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import com.sonic.agent.tests.android.mincap.InputSocketThread;
 import com.sonic.agent.tests.android.mincap.OutputSocketThread;
@@ -26,7 +26,19 @@ import static com.sonic.agent.tests.android.AndroidTestTaskBootThread.ANDROID_TE
  */
 @Slf4j
 public class MiniCapTool {
-    private final Logger logger = LoggerFactory.getLogger(MiniCapTool.class);
+
+    public Thread start(
+            String udId,
+            AtomicReference<String[]> banner,
+            AtomicReference<List<byte[]>> imgList,
+            String pic,
+            int tor,
+            Session session
+    ) {
+        // 这里的AndroidTestTaskBootThread仅作为data bean使用，不会启动
+        return start(udId, banner, imgList, pic, tor, session, new AndroidTestTaskBootThread().setUdId(udId));
+    }
+
 
     public Thread start(
             String udId,
@@ -63,7 +75,7 @@ public class MiniCapTool {
         int finalC = c;
         // 启动mincap服务
         StartServerThread miniCapPro = new StartServerThread(iDevice, pic, finalC, session, androidTestTaskBootThread);
-        AndroidTaskManager.startChildThread(key, miniCapPro);
+        TaskManager.startChildThread(key, miniCapPro);
 
         // 等待启动
         int wait = 0;
@@ -89,7 +101,7 @@ public class MiniCapTool {
                 sendImg, banner, imgList, session, pic
         );
 
-        AndroidTaskManager.startChildThread(key, sendImg, outputSocketThread);
+        TaskManager.startChildThread(key, sendImg, outputSocketThread);
 
         return miniCapPro; // server线程
     }

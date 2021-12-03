@@ -57,6 +57,7 @@ public class AndroidWSServer {
     private Map<IDevice, List<JSONObject>> webViewForwardMap = new ConcurrentHashMap<>();
     private Map<Session, OutputStream> outputMap = new ConcurrentHashMap<>();
     private Map<Session, Thread> rotationMap = new ConcurrentHashMap<>();
+    private Map<Session, Integer> rotationStatusMap = new ConcurrentHashMap<>();
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -111,6 +112,7 @@ public class AndroidWSServer {
                             public void addOutput(byte[] bytes, int i, int i1) {
                                 String res = new String(bytes, i, i1).replaceAll("\n", "").replaceAll("\r", "");
                                 log.info(res);
+                                rotationStatusMap.put(session, Integer.parseInt(res));
                                 JSONObject rotationJson = new JSONObject();
                                 rotationJson.put("msg", "rotation");
                                 rotationJson.put("value", Integer.parseInt(res) * 90);
@@ -131,8 +133,7 @@ public class AndroidWSServer {
                                 AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
                                 Thread miniCapThread = miniCapTool.start(
                                         udIdMap.get(session).getSerialNumber(), banner, null,
-                                        "middle", Integer.parseInt(res), session,
-                                        new AndroidTestTaskBootThread().setUdId(udId)
+                                        "middle", Integer.parseInt(res), session
                                 );
                                 MiniCapMap.getMap().put(session, miniCapThread);
                                 JSONObject picFinish = new JSONObject();
@@ -267,101 +268,6 @@ public class AndroidWSServer {
                 sendText(session, result.toJSONString());
             }
         });
-
-        // todo 以下是旧代码
-//        AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
-//            AndroidStepHandler androidStepHandler = new AndroidStepHandler();
-//            androidStepHandler.setTestMode(0, 0, udId, DeviceStatus.DEBUGGING, session.getId());
-//            JSONObject result = new JSONObject();
-//            try {
-//                AndroidDeviceLocalStatus.startDebug(udId);
-//                androidStepHandler.startAndroidDriver(udId);
-//                result.put("status", "success");
-//                result.put("detail", "初始化Driver完成！");
-//                HandlerMap.getAndroidMap().put(session.getId(), androidStepHandler);
-//            } catch (Exception e) {
-//                log.error(e.getMessage());
-//                e.printStackTrace();
-//                result.put("status", "error");
-//                result.put("detail", "初始化Driver失败！部分功能不可用！请联系管理员");
-//            } finally {
-//                try {
-//                    Thread.sleep(2000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                result.put("msg", "openDriver");
-//                sendText(session, result.toJSONString());
-//            }
-//        });
-//
-//        AndroidDeviceBridgeTool.screen(iDevice, "abort");
-//        MiniCapTool miniCapTool = new MiniCapTool();
-//        AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
-//
-//        Thread miniCapThread = miniCapTool.start(
-//                udId, banner, null, "middle", -1, session,
-//                new AndroidTestTaskBootThread().setUdId(udId)
-//        );
-//        miniCapMap.put(session, miniCapThread);
-//
-//        if (devicePlatformVersion < 10) {
-//            int finalMiniTouchPort = PortTool.getPort();
-//            Future<?> miniTouchPro = AndroidDeviceThreadPool.cachedThreadPool.submit(() -> {
-//                try {
-//                    AndroidDeviceBridgeTool.miniTouchStart(iDevice);
-//                } catch (AdbCommandRejectedException e) {
-//                    e.printStackTrace();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                } catch (SyncException e) {
-//                    e.printStackTrace();
-//                } catch (TimeoutException e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//            AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
-//                try {
-//                    Thread.sleep(3000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                AndroidDeviceBridgeTool.forward(iDevice, finalMiniTouchPort, "minitouch");
-//                Socket touchSocket = null;
-//                OutputStream outputStream = null;
-//                try {
-//                    touchSocket = new Socket("localhost", finalMiniTouchPort);
-//                    outputStream = touchSocket.getOutputStream();
-//                    outputMap.put(session, outputStream);
-//                    while (outputMap.get(session) != null && (!miniTouchPro.isDone())) {
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                } finally {
-//                    if (!miniTouchPro.isDone()) {
-//                        miniTouchPro.cancel(true);
-//                        log.info("miniTouch thread已关闭");
-//                    }
-//                    if (touchSocket != null && touchSocket.isConnected()) {
-//                        try {
-//                            touchSocket.close();
-//                            log.info("miniTouch socket已关闭");
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    if (outputStream != null) {
-//                        try {
-//                            outputStream.close();
-//                            log.info("miniTouch output流已关闭");
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//                AndroidDeviceBridgeTool.removeForward(iDevice, finalMiniTouchPort, "minitouch");
-//            });
-//        }
     }
 
     @OnClose
@@ -504,8 +410,7 @@ public class AndroidWSServer {
                 AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
                 Thread miniCapThread = miniCapTool.start(
                         udIdMap.get(session).getSerialNumber(), banner, null, msg.getString("detail"),
-                        msg.getInteger("s"), session,
-                        new AndroidTestTaskBootThread().setUdId(udIdMap.get(session).getSerialNumber())
+                        rotationStatusMap.get(session), session
                 );
                 MiniCapMap.getMap().put(session, miniCapThread);
                 JSONObject picFinish = new JSONObject();
@@ -530,7 +435,8 @@ public class AndroidWSServer {
                 AndroidDeviceBridgeTool.pressKey(udIdMap.get(session), msg.getInteger("detail"));
                 break;
             case "debug":
-                AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(session.getId());;
+                AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(session.getId());
+                ;
                 try {
                     if (msg.getString("detail").equals("tap")) {
                         String xy = msg.getString("point");

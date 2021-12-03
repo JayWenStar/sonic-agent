@@ -5,7 +5,9 @@ import com.sonic.agent.automation.AndroidStepHandler;
 import com.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.config.SonicConfig;
+import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.rocketmq.enums.MessageDelayLevel;
+import com.sonic.agent.tests.TaskManager;
 import com.sonic.agent.tools.SpringTool;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -115,74 +117,74 @@ public class AndroidTestTaskBootThread extends Thread {
     @Override
     public void run() {
 
-        RocketMQTemplate rocketMQTemplate = SpringTool.getBean(RocketMQTemplate.class);
-        RocketMQConfig rocketMQConfig = SpringTool.getBean(RocketMQConfig.class);
-        SonicConfig sonicConfig = SpringTool.getBean(SonicConfig.class);
-
-        String udId = jsonObject.getJSONObject("device").getString("udId");
-        String key = sonicConfig.getAgent().getKey();
-
-        int wait = jsonObject.getInteger("wait");
-        if (!AndroidDeviceLocalStatus.startTest(udId)) {
-            androidStepHandler.waitDevice(wait + 1);
-            wait++;
-            if (wait >= 30) {
-                androidStepHandler.waitDeviceTimeOut(udId);
-                androidStepHandler.sendStatus();
-            } else {
-                //延时队列 todo 延时策略变更
-                jsonObject.put("wait", wait);
-                rocketMQTemplate.syncSend(
-                        rocketMQConfig.getTopic().getTestTaskTopic() + ":" + key,
-                        MessageBuilder.withPayload(jsonObject).build(),
-                        rocketMQTemplate.getProducer().getSendMsgTimeout(),
-                        MessageDelayLevel.TIME_1M.level
-                );
-                log.info("任务进入延时队列，1min后重试:" + jsonObject);
-            }
-            return;
-        }
-
-        //启动测试
         try {
-            androidStepHandler.startAndroidDriver(udId);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            androidStepHandler.closeAndroidDriver();
-            androidStepHandler.sendStatus();
-            AndroidDeviceLocalStatus.finishError(udId);
-            return;
-        }
+            RocketMQTemplate rocketMQTemplate = SpringTool.getBean(RocketMQTemplate.class);
+            RocketMQConfig rocketMQConfig = SpringTool.getBean(RocketMQConfig.class);
+            SonicConfig sonicConfig = SpringTool.getBean(SonicConfig.class);
 
-        //电量过低退出测试
-        if (androidStepHandler.getBattery()) {
-            androidStepHandler.closeAndroidDriver();
-            androidStepHandler.sendStatus();
-            AndroidDeviceLocalStatus.finish(udId);
-            return;
-        }
+            String udId = jsonObject.getJSONObject("device").getString("udId");
+            String key = sonicConfig.getAgent().getKey();
 
-        //正常运行步骤的线程
-        runStepThread = new AndroidRunStepThread(this);
-        //性能数据获取线程
-        perfDataThread = new AndroidPerfDataThread(this);
-        //录像线程
-        recordThread = new AndroidRecordThread(this);
-        AndroidTaskManager.startChildThread(this.getName(), runStepThread, perfDataThread, recordThread);
-
-
-        //等待两个线程结束了才结束方法
-        // todo 注意如果线程被强制停止，也同样的结束状态，注意下有没有特殊情况（比如关闭一组线程的时候应该先把boot线程先干掉）
-        while ((recordThread.isAlive()) || (runStepThread.isAlive())) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                log.error(e.getMessage());
+            int wait = jsonObject.getInteger("wait");
+            if (!AndroidDeviceLocalStatus.startTest(udId)) {
+                androidStepHandler.waitDevice(wait + 1);
+                wait++;
+                if (wait >= 30) {
+                    androidStepHandler.waitDeviceTimeOut(udId);
+                    androidStepHandler.sendStatus();
+                } else {
+                    //延时队列 todo 延时策略变更
+                    jsonObject.put("wait", wait);
+                    rocketMQTemplate.syncSend(
+                            rocketMQConfig.getTopic().getTestTaskTopic() + ":" + key,
+                            MessageBuilder.withPayload(jsonObject).build(),
+                            rocketMQTemplate.getProducer().getSendMsgTimeout(),
+                            MessageDelayLevel.TIME_1M.level
+                    );
+                    log.info("任务进入延时队列，1min后重试:" + jsonObject);
+                }
+                return;
             }
-        }
-        androidStepHandler.closeAndroidDriver();
-        androidStepHandler.sendStatus();
-        AndroidDeviceLocalStatus.finish(udId);
 
+            //启动测试
+            try {
+                androidStepHandler.startAndroidDriver(udId);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                androidStepHandler.closeAndroidDriver();
+                androidStepHandler.sendStatus();
+                AndroidDeviceLocalStatus.finishError(udId);
+                return;
+            }
+
+            //电量过低退出测试
+            if (androidStepHandler.getBattery()) {
+                androidStepHandler.closeAndroidDriver();
+                androidStepHandler.sendStatus();
+                AndroidDeviceLocalStatus.finish(udId);
+                return;
+            }
+
+            //正常运行步骤的线程
+            runStepThread = new AndroidRunStepThread(this);
+            //性能数据获取线程
+            perfDataThread = new AndroidPerfDataThread(this);
+            //录像线程
+            recordThread = new AndroidRecordThread(this);
+            TaskManager.startChildThread(this.getName(), runStepThread, perfDataThread, recordThread);
+
+
+            //等待两个线程结束了才结束方法
+            while ((recordThread.isAlive()) || (runStepThread.isAlive())) {
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            log.error("任务异常，中断：{}", e.getMessage());
+            androidStepHandler.setResultDetailStatus(ResultDetailStatus.FAIL);
+        } finally {
+            AndroidDeviceLocalStatus.finish(udId);
+            androidStepHandler.closeAndroidDriver();
+            androidStepHandler.sendStatus();
+        }
     }
 }
