@@ -40,7 +40,6 @@ public class AndroidDeviceLocalStatus implements ApplicationContextAware {
         deviceDetail.put("msg", "deviceDetail");
         deviceDetail.put("udId", udId);
         deviceDetail.put("status", status);
-
         NettyThreadPool.send(deviceDetail);
     }
 

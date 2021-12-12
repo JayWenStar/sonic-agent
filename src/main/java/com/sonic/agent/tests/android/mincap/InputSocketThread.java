@@ -39,13 +39,13 @@ public class InputSocketThread extends Thread {
 
     private Queue<byte[]> dataQueue;
 
-    private StartServerThread miniCapPro;
+    private SonicLocalThread miniCapPro;
 
     private AndroidTestTaskBootThread androidTestTaskBootThread;
 
     private Session session;
 
-    public InputSocketThread(IDevice iDevice, Queue<byte[]> dataQueue, StartServerThread miniCapPro, Session session) {
+    public InputSocketThread(IDevice iDevice, Queue<byte[]> dataQueue, SonicLocalThread miniCapPro, Session session) {
         this.iDevice = iDevice;
         this.dataQueue = dataQueue;
         this.miniCapPro = miniCapPro;

@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -33,8 +34,9 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
     @Autowired
     private AndroidDeviceStatusListener androidDeviceStatusListener;
 
+
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(@NonNull ContextRefreshedEvent event) {
         logger.info("开启安卓相关功能");
         init();
     }
@@ -148,10 +150,19 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
     public static String getScreenSize(IDevice iDevice) {
         String size = "";
         try {
-            //不同机型获取的结果有偏差，需要去掉空格、/r、/n和异常情况
-            size = executeCommand(iDevice, "wm size").split(":")[1].trim()
-                    .replace("\r", "").replace("\n", "")
-                    .replace("Override size", "");
+            size = executeCommand(iDevice, "wm size");
+            if (size.contains("Override size")) {
+                size = size.substring(size.indexOf("Override size"));
+            } else {
+                size = size.split(":")[1];
+            }
+            //注意顺序问题
+            size = size.trim()
+                    .replace(":", "")
+                    .replace("Override size", "")
+                    .replace("\r", "")
+                    .replace("\n", "")
+                    .replace(" ", "");
             if (size.length() > 20) {
                 size = "未知";
             }
@@ -176,7 +187,6 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         } catch (Exception e) {
             logger.info("发送shell指令 {} 给设备 {} 异常！"
                     , command, iDevice.getSerialNumber());
-            e.printStackTrace();
             logger.error(e.getMessage());
         }
         return output.getOutput();
@@ -196,7 +206,6 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
             logger.info("{} 设备 {} 服务端口转发到：{}", iDevice.getSerialNumber(), service, port);
             iDevice.createForward(port, service, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -215,7 +224,6 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
             logger.info("{} 设备 {} 服务端口取消转发到：{}", iDevice.getSerialNumber(), serviceName, port);
             iDevice.removeForward(port, serviceName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -309,7 +317,6 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -320,7 +327,6 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                     .trim().replaceAll("\n", "")
                     .replace("\t", ""));
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error(e.getMessage());
             return 0;
         }
@@ -359,7 +365,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         }
     }
 
-    public static void searchDevice(IDevice iDevice){
+    public static void searchDevice(IDevice iDevice) {
         executeCommand(iDevice, "am start -n com.sonic.plugins.assist/com.sonic.plugins.assist.SearchActivity");
     }
 

@@ -25,7 +25,7 @@ import static com.sonic.agent.tools.AgentTool.sendText;
  */
 @Data
 @Slf4j
-public class StartServerThread extends Thread {
+public class SonicLocalThread extends Thread {
 
     /**
      * 占用符逻辑参考：{@link AndroidTestTaskBootThread#ANDROID_TEST_TASK_BOOT_PRE}
@@ -48,8 +48,8 @@ public class StartServerThread extends Thread {
     private Semaphore isFinish = new Semaphore(0);
 
 
-    public StartServerThread(IDevice iDevice, String pic, int finalC, Session session,
-                             AndroidTestTaskBootThread androidTestTaskBootThread) {
+    public SonicLocalThread(IDevice iDevice, String pic, int finalC, Session session,
+                            AndroidTestTaskBootThread androidTestTaskBootThread) {
         this.iDevice = iDevice;
         this.pic = pic;
         this.finalC = finalC;

@@ -532,14 +532,14 @@ public class AndroidStepHandler {
 //                }
 //            }
 //        } else {
-            try {
-                androidDriver.installApp(path, new AndroidInstallApplicationOptions()
-                        .withAllowTestPackagesEnabled().withReplaceEnabled()
-                        .withGrantPermissionsEnabled().withTimeout(Duration.ofMillis(60000)));
-            } catch (Exception e) {
-                handleDes.setE(e);
-                return;
-            }
+        try {
+            androidDriver.installApp(path, new AndroidInstallApplicationOptions()
+                    .withAllowTestPackagesEnabled().withReplaceEnabled()
+                    .withGrantPermissionsEnabled().withTimeout(Duration.ofMillis(60000)));
+        } catch (Exception e) {
+            handleDes.setE(e);
+            return;
+        }
 //        }
     }
 

@@ -9,11 +9,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * updater: chenwenjie.star
- *
- * Netty认证处理器
- */
 public class SecurityHandler extends ChannelInboundHandlerAdapter {
     private final Logger logger = LoggerFactory.getLogger(SecurityHandler.class);
     private NettyClient nettyClient;

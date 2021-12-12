@@ -14,10 +14,11 @@ import com.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import com.sonic.agent.bridge.android.AndroidDeviceThreadPool;
 import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
+import com.sonic.agent.maps.GlobalProcessMap;
 import com.sonic.agent.maps.HandlerMap;
 import com.sonic.agent.maps.MiniCapMap;
 import com.sonic.agent.maps.WebSocketSessionMap;
-import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
+import com.sonic.agent.netty.NettyThreadPool;
 import com.sonic.agent.tools.MiniCapTool;
 import com.sonic.agent.tools.PortTool;
 import com.sonic.agent.tools.ProcessCommandTool;
@@ -45,19 +46,20 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.sonic.agent.tools.AgentTool.sendText;
 
-@Component
-@ServerEndpoint(value = "/websockets/android/{key}/{udId}", configurator = MyEndpointConfigure.class)
 @Slf4j
+@Component
+@ServerEndpoint(value = "/websockets/android/{key}/{udId}/{token}", configurator = MyEndpointConfigure.class)
 public class AndroidWSServer {
     @Value("${sonic.agent.key}")
     private String key;
-    @Value("${modules.webview.chrome-driver-debug-port}")
-    private int chromePort;
+    @Value("${modules.android.use-adbkit}")
+    private boolean isEnableAdbKit;
     private Map<Session, IDevice> udIdMap = new ConcurrentHashMap<>();
     private Map<IDevice, List<JSONObject>> webViewForwardMap = new ConcurrentHashMap<>();
     private Map<Session, OutputStream> outputMap = new ConcurrentHashMap<>();
     private Map<Session, Thread> rotationMap = new ConcurrentHashMap<>();
     private Map<Session, Integer> rotationStatusMap = new ConcurrentHashMap<>();
+    private Map<Session, String> picMap = new ConcurrentHashMap<>();
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -66,11 +68,19 @@ public class AndroidWSServer {
     private RocketMQConfig rocketMQConfig;
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("key") String secretKey, @PathParam("udId") String udId) throws Exception {
+    public void onOpen(
+            Session session,
+            @PathParam("key") String secretKey, @PathParam("udId") String udId,
+            @PathParam("token") String token) {
         if (secretKey.length() == 0 || (!secretKey.equals(key))) {
             log.info("拦截访问！");
             return;
         }
+        JSONObject jsonDebug = new JSONObject();
+        jsonDebug.put("msg", "debugUser");
+        jsonDebug.put("token", token);
+        jsonDebug.put("udId", udId);
+        NettyThreadPool.send(jsonDebug);
         WebSocketSessionMap.getMap().put(session.getId(), session);
         IDevice iDevice = AndroidDeviceBridgeTool.getIDeviceByUdId(udId);
         if (iDevice == null) {
@@ -111,7 +121,7 @@ public class AndroidWSServer {
                             @Override
                             public void addOutput(byte[] bytes, int i, int i1) {
                                 String res = new String(bytes, i, i1).replaceAll("\n", "").replaceAll("\r", "");
-                                log.info(res);
+                                log.info(udId + "旋转到：" + res);
                                 rotationStatusMap.put(session, Integer.parseInt(res));
                                 JSONObject rotationJson = new JSONObject();
                                 rotationJson.put("msg", "rotation");
@@ -133,7 +143,8 @@ public class AndroidWSServer {
                                 AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
                                 Thread miniCapThread = miniCapTool.start(
                                         udIdMap.get(session).getSerialNumber(), banner, null,
-                                        "middle", Integer.parseInt(res), session
+                                        picMap.get(session) == null ? "high" : picMap.get(session),
+                                        Integer.parseInt(res), session
                                 );
                                 MiniCapMap.getMap().put(session, miniCapThread);
                                 JSONObject picFinish = new JSONObject();
@@ -243,6 +254,39 @@ public class AndroidWSServer {
         });
 
         AndroidDeviceThreadPool.cachedThreadPool.execute(() -> AndroidDeviceBridgeTool.pushYadb(udIdMap.get(session)));
+
+        if (isEnableAdbKit) {
+            String processName = String.format("process-%s-adbkit", udId);
+            if (GlobalProcessMap.getMap().get(processName) != null) {
+                Process ps = GlobalProcessMap.getMap().get(processName);
+                ps.children().forEach(ProcessHandle::destroy);
+                ps.destroy();
+            }
+            try {
+                String system = System.getProperty("os.name").toLowerCase();
+                Process ps = null;
+                int port = PortTool.getPort();
+                if (system.contains("win")) {
+                    ps = Runtime.getRuntime().exec(String.format("cmd /c adbkit usb-device-to-tcp -p %d %s", port, udId));
+                }
+                if (system.contains("linux") || system.contains("mac")) {
+                    ps = Runtime.getRuntime().exec(String.format("sh -c adbkit usb-device-to-tcp -p %d %s", port, udId));
+                }
+                GlobalProcessMap.getMap().put(processName, ps);
+                JSONObject adbkit = new JSONObject();
+                adbkit.put("msg", "adbkit");
+                adbkit.put("isEnable", true);
+                adbkit.put("port", port);
+                sendText(session, adbkit.toJSONString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            JSONObject adbkit = new JSONObject();
+            adbkit.put("msg", "adbkit");
+            adbkit.put("isEnable", false);
+            sendText(session, adbkit.toJSONString());
+        }
 
         AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
             AndroidStepHandler androidStepHandler = new AndroidStepHandler();
@@ -357,7 +401,7 @@ public class AndroidWSServer {
                 if (RemoteDebugDriver.webDriver == null) {
                     RemoteDebugDriver.startChromeDriver();
                 }
-                forwardView.put("chromePort", chromePort);
+                forwardView.put("chromePort", RemoteDebugDriver.chromePort);
                 forwardView.put("detail", result);
                 sendText(session, forwardView.toJSONString());
                 break;
@@ -373,29 +417,6 @@ public class AndroidWSServer {
                         + " shell app_process -Djava.class.path=/data/local/tmp/yadb /data/local/tmp com.ysbing.yadb.Main -keyboard " + msg.getString("detail"));
                 break;
             case "pic": {
-                Thread old = MiniCapMap.getMap().get(session);
-                old.interrupt();
-                do {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                while (MiniCapMap.getMap().get(session) != null);
-                MiniCapTool miniCapTool = new MiniCapTool();
-                AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
-                Thread miniCapThread = miniCapTool.start(
-                        udIdMap.get(session).getSerialNumber(), banner, null, msg.getString("detail"), -1, session,
-                        new AndroidTestTaskBootThread().setUdId(udIdMap.get(session).getSerialNumber())
-                );
-                MiniCapMap.getMap().put(session, miniCapThread);
-                JSONObject picFinish = new JSONObject();
-                picFinish.put("msg", "picFinish");
-                sendText(session, picFinish.toJSONString());
-                break;
-            }
-            case "fixScreen": {
                 Thread old = MiniCapMap.getMap().get(session);
                 old.interrupt();
                 do {
@@ -436,7 +457,6 @@ public class AndroidWSServer {
                 break;
             case "debug":
                 AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(session.getId());
-                ;
                 try {
                     if (msg.getString("detail").equals("tap")) {
                         String xy = msg.getString("point");
@@ -556,6 +576,14 @@ public class AndroidWSServer {
             }
         }
         webViewForwardMap.remove(udIdMap.get(session));
+        if (isEnableAdbKit) {
+            String processName = String.format("process-%s-adbkit", udIdMap.get(session).getSerialNumber());
+            if (GlobalProcessMap.getMap().get(processName) != null) {
+                Process ps = GlobalProcessMap.getMap().get(processName);
+                ps.children().forEach(ProcessHandle::destroy);
+                ps.destroy();
+            }
+        }
         outputMap.remove(session);
         udIdMap.remove(session);
         rotationMap.get(session).interrupt();

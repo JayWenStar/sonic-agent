@@ -12,11 +12,6 @@ import javax.websocket.Session;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @updater: chenwenjie.star
- *
- * netty客户端消息处理
- */
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     private final Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
     private static Map<String, Session> sessionMap = new ConcurrentHashMap<String, Session>();

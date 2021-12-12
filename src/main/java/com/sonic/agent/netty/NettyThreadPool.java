@@ -12,11 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
-/**
- * updater: chenwenjie.star
- *
- * netty消息缓冲池
- */
 @Configuration
 public class NettyThreadPool {
     private final Logger logger = LoggerFactory.getLogger(NettyThreadPool.class);
