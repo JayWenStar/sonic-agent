@@ -5,10 +5,15 @@ import com.sonic.agent.config.RocketMQConfig;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.maps.AndroidDeviceManagerMap;
 import com.sonic.agent.netty.NettyThreadPool;
+import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author ZhouYiXun
@@ -19,6 +24,7 @@ public class AndroidDeviceLocalStatus implements ApplicationContextAware {
 
     private static RocketMQConfig rocketMQConfig;
     private static RocketMQTemplate rocketMQTemplate;
+    private static Semaphore semaphore = new Semaphore(1);
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -50,15 +56,18 @@ public class AndroidDeviceLocalStatus implements ApplicationContextAware {
      * @des 开始测试
      * @date 2021/8/16 20:57
      */
-    public static boolean startTest(String udId) {
-        synchronized (AndroidDeviceLocalStatus.class) {
-            if (AndroidDeviceManagerMap.getMap().get(udId) == null) {
-                send(udId, DeviceStatus.TESTING);
-                AndroidDeviceManagerMap.getMap().put(udId, DeviceStatus.TESTING);
-                return true;
-            } else {
-                return false;
-            }
+    public static boolean startTest(String udId) throws InterruptedException {
+        semaphore.acquire();
+        System.out.println("当前线程为： " + Thread.currentThread());
+        System.out.println("getMap()内容为：" + AndroidDeviceManagerMap.getMap().get(udId));
+        if (!AndroidDeviceManagerMap.getMap().containsKey(udId)) {
+            send(udId, DeviceStatus.TESTING);
+            AndroidDeviceManagerMap.getMap().put(udId, DeviceStatus.TESTING);
+            semaphore.release();
+            return true;
+        } else {
+            semaphore.release();
+            return false;
         }
     }
 

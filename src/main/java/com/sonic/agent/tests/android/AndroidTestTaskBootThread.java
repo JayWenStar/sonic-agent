@@ -117,6 +117,8 @@ public class AndroidTestTaskBootThread extends Thread {
     @Override
     public void run() {
 
+        boolean startTest = false;
+
         try {
             RocketMQTemplate rocketMQTemplate = SpringTool.getBean(RocketMQTemplate.class);
             RocketMQConfig rocketMQConfig = SpringTool.getBean(RocketMQConfig.class);
@@ -148,6 +150,7 @@ public class AndroidTestTaskBootThread extends Thread {
 
             //启动测试
             try {
+                startTest = true;
                 androidStepHandler.startAndroidDriver(udId);
             } catch (Exception e) {
                 log.error(e.getMessage());
@@ -184,9 +187,11 @@ public class AndroidTestTaskBootThread extends Thread {
             e.printStackTrace();
             androidStepHandler.setResultDetailStatus(ResultDetailStatus.FAIL);
         } finally {
-            AndroidDeviceLocalStatus.finish(udId);
-            androidStepHandler.closeAndroidDriver();
-            androidStepHandler.sendStatus();
+            if (startTest) {
+                AndroidDeviceLocalStatus.finish(udId);
+                androidStepHandler.closeAndroidDriver();
+                androidStepHandler.sendStatus();
+            }
         }
     }
 }

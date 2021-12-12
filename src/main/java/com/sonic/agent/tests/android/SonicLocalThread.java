@@ -7,6 +7,7 @@ import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +24,8 @@ import static com.sonic.agent.tools.AgentTool.sendText;
  * @author Eason(main) JayWenStar(until e1a877b7)
  * @date 2021/12/2 12:40 上午
  */
-@Data
+@Getter
+@Setter
 @Slf4j
 public class SonicLocalThread extends Thread {
 
