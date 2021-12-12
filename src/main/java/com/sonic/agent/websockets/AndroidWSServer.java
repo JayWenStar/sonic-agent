@@ -72,7 +72,7 @@ public class AndroidWSServer {
             Session session,
             @PathParam("key") String secretKey, @PathParam("udId") String udId,
             @PathParam("token") String token) {
-        if (secretKey.length() == 0 || (!secretKey.equals(key))) {
+        if (secretKey.length() == 0 || (!secretKey.equals(key)) || token.length() == 0) {
             log.info("拦截访问！");
             return;
         }
