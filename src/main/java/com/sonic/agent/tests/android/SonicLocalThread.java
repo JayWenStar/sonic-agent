@@ -1,4 +1,4 @@
-package com.sonic.agent.tests.android.mincap;
+package com.sonic.agent.tests.android;
 
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;

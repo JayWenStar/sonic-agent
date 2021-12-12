@@ -131,7 +131,6 @@ public class AndroidStepHandler {
             androidDriver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
             log.sendStepLog(StepType.PASS, "连接设备驱动成功", "");
         } catch (Exception e) {
-            e.printStackTrace();
             log.sendStepLog(StepType.ERROR, "连接设备驱动失败！", "");
             //测试标记为失败
             setResultDetailStatus(ResultDetailStatus.FAIL);
@@ -200,16 +199,6 @@ public class AndroidStepHandler {
         if (status > this.status) {
             this.status = status;
         }
-    }
-
-    /**
-     * 强制设置测试状态
-     *
-     * @author chenwenjie.star
-     * @param status  {@link ResultDetailStatus}
-     */
-    public void setResultDetailStatusForce(int status) {
-        this.status = status;
     }
 
     public void sendStatus() {

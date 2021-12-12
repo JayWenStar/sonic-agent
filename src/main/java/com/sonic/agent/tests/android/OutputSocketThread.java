@@ -1,7 +1,6 @@
-package com.sonic.agent.tests.android.mincap;
+package com.sonic.agent.tests.android;
 
 import com.alibaba.fastjson.JSONObject;
-import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;

@@ -1,9 +1,8 @@
-package com.sonic.agent.tests.android.mincap;
+package com.sonic.agent.tests.android;
 
 import com.android.ddmlib.IDevice;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import com.sonic.agent.maps.MiniCapMap;
-import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import com.sonic.agent.tools.PortTool;
 import lombok.AccessLevel;
 import lombok.Data;

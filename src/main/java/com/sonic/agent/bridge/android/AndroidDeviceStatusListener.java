@@ -9,6 +9,8 @@ import com.sonic.agent.maps.AndroidDeviceManagerMap;
 import com.sonic.agent.netty.NettyThreadPool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -20,8 +22,9 @@ import org.springframework.stereotype.Component;
  * @date 2021/08/16 19:26
  */
 @Component
-@Slf4j
 public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceChangeListener, ApplicationContextAware {
+
+    private final Logger logger = LoggerFactory.getLogger(AndroidDeviceStatusListener.class);
 
     private RocketMQTemplate rocketMQTemplate;
     private RocketMQConfig rocketMQConfig;
@@ -31,8 +34,8 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
         rocketMQConfig = applicationContext.getBean(RocketMQConfig.class);
-        log.info(rocketMQTemplate.toString());
-        log.info(rocketMQConfig.toString());
+        logger.info(rocketMQTemplate.toString());
+        logger.info(rocketMQConfig.toString());
     }
 
     /**
@@ -61,14 +64,14 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
 
     @Override
     public void deviceConnected(IDevice device) {
-        log.info("Android设备：" + device.getSerialNumber() + " ONLINE！");
+        logger.info("Android设备：" + device.getSerialNumber() + " ONLINE！");
         AndroidDeviceManagerMap.getMap().remove(device.getSerialNumber());
         send(device);
     }
 
     @Override
     public void deviceDisconnected(IDevice device) {
-        log.info("Android设备：" + device.getSerialNumber() + " OFFLINE！");
+        logger.info("Android设备：" + device.getSerialNumber() + " OFFLINE！");
         AndroidDeviceManagerMap.getMap().remove(device.getSerialNumber());
         send(device);
     }
@@ -76,9 +79,9 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
     @Override
     public void deviceChanged(IDevice device, int changeMask) {
         if (device.isOnline()) {
-            log.info("Android设备：" + device.getSerialNumber() + " ONLINE！");
+            logger.info("Android设备：" + device.getSerialNumber() + " ONLINE！");
         } else {
-            log.info("Android设备：" + device.getSerialNumber() + " OFFLINE！");
+            logger.info("Android设备：" + device.getSerialNumber() + " OFFLINE！");
         }
         send(device);
     }

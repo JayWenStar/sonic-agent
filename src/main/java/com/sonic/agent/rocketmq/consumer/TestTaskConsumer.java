@@ -11,7 +11,7 @@ import com.sonic.agent.interfaces.PlatformType;
 import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.maps.AndroidPasswordMap;
 import com.sonic.agent.maps.HandlerMap;
-import com.sonic.agent.tests.android.AndroidTests;
+import com.sonic.agent.tests.AndroidTests;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;

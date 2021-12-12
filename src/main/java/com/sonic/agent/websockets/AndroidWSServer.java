@@ -26,6 +26,8 @@ import com.sonic.agent.tools.UploadTools;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.openqa.selenium.OutputType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -46,10 +48,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.sonic.agent.tools.AgentTool.sendText;
 
-@Slf4j
 @Component
 @ServerEndpoint(value = "/websockets/android/{key}/{udId}/{token}", configurator = MyEndpointConfigure.class)
 public class AndroidWSServer {
+    private final Logger logger = LoggerFactory.getLogger(AndroidWSServer.class);
     @Value("${sonic.agent.key}")
     private String key;
     @Value("${modules.android.use-adbkit}")
@@ -73,7 +75,7 @@ public class AndroidWSServer {
             @PathParam("key") String secretKey, @PathParam("udId") String udId,
             @PathParam("token") String token) {
         if (secretKey.length() == 0 || (!secretKey.equals(key)) || token.length() == 0) {
-            log.info("拦截访问！");
+            logger.info("拦截访问！");
             return;
         }
         JSONObject jsonDebug = new JSONObject();
@@ -84,7 +86,7 @@ public class AndroidWSServer {
         WebSocketSessionMap.getMap().put(session.getId(), session);
         IDevice iDevice = AndroidDeviceBridgeTool.getIDeviceByUdId(udId);
         if (iDevice == null) {
-            log.info("设备未连接，请检查！");
+            logger.info("设备未连接，请检查！");
             return;
         }
         AndroidDeviceBridgeTool.screen(iDevice, "abort");
@@ -96,13 +98,13 @@ public class AndroidWSServer {
                 .replaceAll("\n", "")
                 .replaceAll("\t", "");
         if (path.length() > 0) {
-            log.info("已安装Sonic插件");
+            logger.info("已安装Sonic插件");
         } else {
             try {
                 iDevice.installPackage("plugins/sonic-plugin.apk", true, "-t");
             } catch (InstallException e) {
                 e.printStackTrace();
-                log.info("Sonic插件安装失败！");
+                logger.info("Sonic插件安装失败！");
                 return;
             }
             path = AndroidDeviceBridgeTool.executeCommand(iDevice, "pm path com.sonic.plugins.assist").trim()
@@ -121,7 +123,7 @@ public class AndroidWSServer {
                             @Override
                             public void addOutput(byte[] bytes, int i, int i1) {
                                 String res = new String(bytes, i, i1).replaceAll("\n", "").replaceAll("\r", "");
-                                log.info(udId + "旋转到：" + res);
+                                logger.info(udId + "旋转到：" + res);
                                 rotationStatusMap.put(session, Integer.parseInt(res));
                                 JSONObject rotationJson = new JSONObject();
                                 rotationJson.put("msg", "rotation");
@@ -162,9 +164,9 @@ public class AndroidWSServer {
                             }
                         }, 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
-                log.info("{} 设备方向监听启动异常！"
+                logger.info("{} 设备方向监听启动异常！"
                         , iDevice.getSerialNumber());
-                log.error(e.getMessage());
+                logger.error(e.getMessage());
             }
         });
         rotationPro.start();
@@ -178,7 +180,7 @@ public class AndroidWSServer {
                             @Override
                             public void addOutput(byte[] bytes, int i, int i1) {
                                 String res = new String(bytes, i, i1);
-                                log.info(res);
+                                logger.info(res);
                                 if (res.contains("Server start")) {
                                     isTouchFinish.release();
                                 }
@@ -194,9 +196,9 @@ public class AndroidWSServer {
                             }
                         }, 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
-                log.info("{} 设备touch服务启动异常！"
+                logger.info("{} 设备touch服务启动异常！"
                         , iDevice.getSerialNumber());
-                log.error(e.getMessage());
+                logger.error(e.getMessage());
             }
         });
         touchPro.start();
@@ -231,12 +233,12 @@ public class AndroidWSServer {
             } finally {
                 if (touchPro.isAlive()) {
                     touchPro.interrupt();
-                    log.info("touch thread已关闭");
+                    logger.info("touch thread已关闭");
                 }
                 if (touchSocket != null && touchSocket.isConnected()) {
                     try {
                         touchSocket.close();
-                        log.info("touch socket已关闭");
+                        logger.info("touch socket已关闭");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -244,7 +246,7 @@ public class AndroidWSServer {
                 if (outputStream != null) {
                     try {
                         outputStream.close();
-                        log.info("touch output流已关闭");
+                        logger.info("touch output流已关闭");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -299,7 +301,7 @@ public class AndroidWSServer {
                 result.put("detail", "初始化Driver完成！");
                 HandlerMap.getAndroidMap().put(session.getId(), androidStepHandler);
             } catch (Exception e) {
-                log.error(e.getMessage());
+                logger.error(e.getMessage());
                 result.put("status", "error");
                 result.put("detail", "初始化Driver失败！部分功能不可用！请联系管理员");
             } finally {
@@ -321,8 +323,7 @@ public class AndroidWSServer {
 
     @OnError
     public void onError(Session session, Throwable error) {
-        log.error(error.getMessage());
-        error.printStackTrace();
+        logger.error(error.getMessage());
         JSONObject errMsg = new JSONObject();
         errMsg.put("msg", "error");
         sendText(session, errMsg.toJSONString());
@@ -331,7 +332,7 @@ public class AndroidWSServer {
     @OnMessage
     public void onMessage(String message, Session session) throws InterruptedException {
         JSONObject msg = JSON.parseObject(message);
-        log.info(session.getId() + " 发送 " + msg);
+        logger.info(session.getId() + " 发送 " + msg);
         switch (msg.getString("type")) {
             case "forwardView": {
                 JSONObject forwardView = new JSONObject();
@@ -511,8 +512,7 @@ public class AndroidWSServer {
                                 result.put("img", finalAndroidStepHandler.stepScreen(handleDes));
                             }
                             if (handleDes.getE() != null) {
-                                log.error(handleDes.getE().getMessage());
-                                handleDes.getE().printStackTrace();
+                                logger.error(handleDes.getE().getMessage());
                                 JSONObject resultFail = new JSONObject();
                                 resultFail.put("msg", "treeFail");
                                 sendText(session, resultFail.toJSONString());
@@ -522,8 +522,7 @@ public class AndroidWSServer {
                                 sendText(session, result.toJSONString());
                             }
                         } catch (Throwable e) {
-                            log.error(e.getMessage());
-                            e.printStackTrace();
+                            logger.error(e.getMessage());
                             JSONObject result = new JSONObject();
                             result.put("msg", "treeFail");
                             sendText(session, result.toJSONString());
@@ -565,7 +564,7 @@ public class AndroidWSServer {
         try {
             HandlerMap.getAndroidMap().get(session.getId()).closeAndroidDriver();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("关闭driver异常!");
         } finally {
             HandlerMap.getAndroidMap().remove(session.getId());
         }
@@ -595,6 +594,6 @@ public class AndroidWSServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        log.info(session.getId() + "退出");
+        logger.info(session.getId() + "退出");
     }
 }

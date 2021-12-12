@@ -1,10 +1,11 @@
-package com.sonic.agent.tests.android;
+package com.sonic.agent.tests;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sonic.agent.automation.AndroidStepHandler;
 import com.sonic.agent.interfaces.DeviceStatus;
 import com.sonic.agent.interfaces.ResultDetailStatus;
 import com.sonic.agent.tests.TaskManager;
+import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +31,7 @@ public class AndroidTests {
         androidStepHandler.setGlobalParams(gp);
         androidStepHandler.setTestMode(cid, rid, udId, DeviceStatus.TESTING, "");
 
-        androidStepHandler.setResultDetailStatusForce(ResultDetailStatus.RUNNING);
+        androidStepHandler.setResultDetailStatus(ResultDetailStatus.RUNNING);
         androidStepHandler.sendStatus();
         androidStepHandler.resetResultDetailStatus();
 

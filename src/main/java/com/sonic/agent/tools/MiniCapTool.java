@@ -4,9 +4,9 @@ import com.android.ddmlib.IDevice;
 import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import com.sonic.agent.tests.TaskManager;
 import com.sonic.agent.tests.android.AndroidTestTaskBootThread;
-import com.sonic.agent.tests.android.mincap.InputSocketThread;
-import com.sonic.agent.tests.android.mincap.OutputSocketThread;
-import com.sonic.agent.tests.android.mincap.SonicLocalThread;
+import com.sonic.agent.tests.android.InputSocketThread;
+import com.sonic.agent.tests.android.OutputSocketThread;
+import com.sonic.agent.tests.android.SonicLocalThread;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.websocket.Session;
