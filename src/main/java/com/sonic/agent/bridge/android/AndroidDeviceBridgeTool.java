@@ -20,12 +20,9 @@ import java.util.concurrent.TimeUnit;
  * @author ZhouYiXun
  * @des ADB工具类
  * @date 2021/08/16 19:26
- *
- * @updater chenwenjie.star
- * 更改了启动逻辑
  */
 @ConditionalOnProperty(value = "modules.android.enable", havingValue = "true")
-@DependsOn({"androidThreadPoolInit", "rocketMQTemplate", "rocketMQConfig", "nettyMsgInit"})
+@DependsOn({"androidThreadPoolInit", "nettyMsgInit"})
 @Component
 public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefreshedEvent> {
     private static final Logger logger = LoggerFactory.getLogger(AndroidDeviceBridgeTool.class);

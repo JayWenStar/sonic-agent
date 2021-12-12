@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
  * @date 2021/11/23 20:15 下午
  */
 @Component
-@Slf4j
 public class AndroidTests {
 
     /**

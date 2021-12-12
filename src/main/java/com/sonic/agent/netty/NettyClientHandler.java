@@ -1,14 +1,31 @@
 package com.sonic.agent.netty;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+import com.sonic.agent.automation.AndroidStepHandler;
+import com.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
+import com.sonic.agent.bridge.ios.TIDeviceTool;
+import com.sonic.agent.interfaces.PlatformType;
+import com.sonic.agent.maps.AndroidPasswordMap;
+import com.sonic.agent.maps.HandlerMap;
+import com.sonic.agent.tests.AndroidTests;
+import com.sonic.agent.tests.TaskManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.TestNG;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 import javax.websocket.Session;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,11 +51,73 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         logger.info("Agent:{} 收到服务器 {} 消息: {}", ctx.channel().localAddress(), ctx.channel().remoteAddress(), jsonObject);
         NettyThreadPool.cachedThreadPool.execute(() -> {
             switch (jsonObject.getString("msg")) {
+                case "reboot":
+                    if (jsonObject.getInteger("platform") == PlatformType.ANDROID) {
+                        IDevice rebootDevice = AndroidDeviceBridgeTool.getIDeviceByUdId(jsonObject.getString("udId"));
+                        if (rebootDevice != null) {
+                            AndroidDeviceBridgeTool.reboot(rebootDevice);
+                        }
+                    }
+                    if (jsonObject.getInteger("platform") == PlatformType.IOS) {
+                        if (TIDeviceTool.getDeviceList().contains(jsonObject.getString("udId"))) {
+                            TIDeviceTool.reboot(jsonObject.getString("udId"));
+                        }
+                    }
+                    break;
                 case "heartBeat":
                     JSONObject heartBeat = new JSONObject();
                     heartBeat.put("msg", "heartBeat");
                     heartBeat.put("status", "alive");
                     NettyThreadPool.send(heartBeat);
+                    break;
+                case "runStep":
+                    if (jsonObject.getInteger("pf") == PlatformType.ANDROID) {
+                        AndroidPasswordMap.getMap().put(jsonObject.getString("udId")
+                                , jsonObject.getString("pwd"));
+                        AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(jsonObject.getString("sessionId"));
+                        androidStepHandler.resetResultDetailStatus();
+                        androidStepHandler.setGlobalParams(jsonObject.getJSONObject("gp"));
+                        List<JSONObject> steps = jsonObject.getJSONArray("steps").toJavaList(JSONObject.class);
+                        for (JSONObject step : steps) {
+                            try {
+                                androidStepHandler.runStep(step);
+                            } catch (Throwable e) {
+                                break;
+                            }
+                        }
+                        androidStepHandler.sendStatus();
+                    }
+                    break;
+                case "suite":
+                    List<JSONObject> cases = jsonObject.getJSONArray("cases").toJavaList(JSONObject.class);
+                    TestNG tng = new TestNG();
+                    List<XmlSuite> suiteList = new ArrayList<>();
+                    XmlSuite xmlSuite = new XmlSuite();
+                    for (JSONObject dataInfo : cases) {
+                        XmlTest xmlTest = new XmlTest(xmlSuite);
+                        Map<String, String> parameters = new HashMap<>();
+                        parameters.put("dataInfo", dataInfo.toJSONString());
+                        xmlTest.setParameters(parameters);
+                        List<XmlClass> classes = new ArrayList<>();
+                        classes.add(new XmlClass(AndroidTests.class));
+                        xmlTest.setXmlClasses(classes);
+                    }
+                    suiteList.add(xmlSuite);
+                    tng.setXmlSuites(suiteList);
+                    tng.run();
+                    break;
+                case "forceStopSuite":
+                    List<JSONObject> caseList = jsonObject.getJSONArray("cases").toJavaList(JSONObject.class);
+                    for (JSONObject aCase : caseList) {
+                        int resultId = (int) aCase.get("rid");
+                        int caseId = (int) aCase.get("cid");
+                        JSONArray devices = (JSONArray) aCase.get("device");
+                        List<JSONObject> deviceList = devices.toJavaList(JSONObject.class);
+                        for (JSONObject device : deviceList) {
+                            String udId = (String) device.get("udId");
+                            TaskManager.forceStopSuite(resultId, caseId, udId);
+                        }
+                    }
                     break;
             }
         });

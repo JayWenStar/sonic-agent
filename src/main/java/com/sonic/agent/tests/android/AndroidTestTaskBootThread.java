@@ -151,6 +151,7 @@ public class AndroidTestTaskBootThread extends Thread {
                 androidStepHandler.startAndroidDriver(udId);
             } catch (Exception e) {
                 log.error(e.getMessage());
+                e.printStackTrace();
                 androidStepHandler.closeAndroidDriver();
                 androidStepHandler.sendStatus();
                 AndroidDeviceLocalStatus.finishError(udId);
@@ -180,6 +181,7 @@ public class AndroidTestTaskBootThread extends Thread {
             }
         } catch (InterruptedException e) {
             log.error("任务异常，中断：{}", e.getMessage());
+            e.printStackTrace();
             androidStepHandler.setResultDetailStatus(ResultDetailStatus.FAIL);
         } finally {
             AndroidDeviceLocalStatus.finish(udId);

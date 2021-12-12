@@ -50,7 +50,7 @@ public class NettyThreadPool {
                             JSONObject m = dataQueue.poll();
                             m.put("agentId", AgentTool.agentId);
                             NettyClientHandler.channel.writeAndFlush(m.toJSONString());
-                        } else {
+                        }else{
                             Thread.sleep(1000);
                         }
                     } else {

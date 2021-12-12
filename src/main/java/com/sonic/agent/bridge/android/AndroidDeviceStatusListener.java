@@ -34,8 +34,6 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
         rocketMQConfig = applicationContext.getBean(RocketMQConfig.class);
-        logger.info(rocketMQTemplate.toString());
-        logger.info(rocketMQConfig.toString());
     }
 
     /**
