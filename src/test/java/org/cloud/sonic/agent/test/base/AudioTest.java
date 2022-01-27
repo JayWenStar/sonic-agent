@@ -46,7 +46,7 @@ public class AudioTest extends AbstractTestNGSpringContextTests {
                 AndroidDeviceBridgeTool.forward(iDevice, appListPort, "sonicaudioservice");
                 Socket audioSocket = null;
                 InputStream inputStream = null;
-                FileOutputStream fos = new FileOutputStream("/Users/JayWenStar/Downloads/test.mp3", true);
+                FileOutputStream fos = new FileOutputStream("/Users/JayWenStar/Downloads/test.acc", true);
                 FileChannel fc = fos.getChannel();
                 try {
                     audioSocket = new Socket("localhost", appListPort);
