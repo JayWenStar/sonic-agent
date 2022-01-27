@@ -61,7 +61,7 @@ public class AudioTest extends AbstractTestNGSpringContextTests {
                         }
                         if (realLen >= 0) {
                             ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.length);
-                            byteBuffer.put(byteBuffer);
+                            byteBuffer.put(buffer);
                             byteBuffer.flip();
                             fc.write(byteBuffer);
                             fos.flush();
