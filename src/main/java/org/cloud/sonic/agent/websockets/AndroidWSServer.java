@@ -32,6 +32,7 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.*;
@@ -39,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.cloud.sonic.agent.tools.AgentTool.subByteArray;
 
 @Component
 @ServerEndpoint(value = "/websockets/android/{key}/{udId}/{token}", configurator = MyEndpointConfigure.class)
@@ -86,10 +89,10 @@ public class AndroidWSServer {
             return;
         }
         AndroidDeviceBridgeTool.screen(iDevice, "abort");
-        AndroidDeviceBridgeTool.pressKey(iDevice, 3);
         udIdMap.put(session, iDevice);
 
-        String path = AndroidDeviceBridgeTool.executeCommand(iDevice, "pm path com.sonic.plugins.assist").trim()
+        AndroidAPKMap.getMap().put(udId, false);
+        String path = AndroidDeviceBridgeTool.executeCommand(iDevice, "pm path org.cloud.sonic.android").trim()
                 .replaceAll("package:", "")
                 .replaceAll("\n", "")
                 .replaceAll("\t", "");
@@ -97,24 +100,25 @@ public class AndroidWSServer {
             logger.info("已安装Sonic插件");
         } else {
             try {
-                iDevice.installPackage("plugins/sonic-plugin.apk", true, "-t");
+                iDevice.installPackage("plugins/sonic-android-apk-debug.apk", true, "-t", "-r", "-g");
             } catch (InstallException e) {
                 e.printStackTrace();
                 logger.info("Sonic插件安装失败！");
                 return;
             }
-            path = AndroidDeviceBridgeTool.executeCommand(iDevice, "pm path com.sonic.plugins.assist").trim()
+            path = AndroidDeviceBridgeTool.executeCommand(iDevice, "pm path org.cloud.sonic.android").trim()
                     .replaceAll("package:", "")
                     .replaceAll("\n", "")
                     .replaceAll("\t", "");
         }
+        AndroidAPKMap.getMap().put(udId, true);
 
         Semaphore isTouchFinish = new Semaphore(0);
         String finalPath = path;
         Thread rotationPro = new Thread(() -> {
             try {
                 //开始启动
-                iDevice.executeShellCommand(String.format("CLASSPATH=%s exec app_process /system/bin com.sonic.plugins.assist.RotationMonitorService", finalPath)
+                iDevice.executeShellCommand(String.format("CLASSPATH=%s exec app_process /system/bin org.cloud.sonic.android.RotationMonitorService", finalPath)
                         , new IShellOutputReceiver() {
                             @Override
                             public void addOutput(byte[] bytes, int i, int i1) {
@@ -171,7 +175,7 @@ public class AndroidWSServer {
         Thread touchPro = new Thread(() -> {
             try {
                 //开始启动
-                iDevice.executeShellCommand(String.format("CLASSPATH=%s exec app_process /system/bin com.sonic.plugins.assist.SonicTouchService", finalPath)
+                iDevice.executeShellCommand(String.format("CLASSPATH=%s exec app_process /system/bin org.cloud.sonic.android.SonicTouchService", finalPath)
                         , new IShellOutputReceiver() {
                             @Override
                             public void addOutput(byte[] bytes, int i, int i1) {
@@ -409,6 +413,13 @@ public class AndroidWSServer {
             case "battery":
                 AndroidDeviceBridgeTool.controlBattery(udIdMap.get(session), msg.getInteger("detail"));
                 break;
+            case "uninstallApp":
+                try {
+                    udIdMap.get(session).uninstallPackage(msg.getString("detail"));
+                } catch (InstallException e) {
+                    e.printStackTrace();
+                }
+                break;
             case "scan":
                 AndroidDeviceBridgeTool.pushToCamera(udIdMap.get(session), msg.getString("url"));
                 break;
@@ -517,6 +528,12 @@ public class AndroidWSServer {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    if (msg.getString("detail").equals("openApp")) {
+                        AndroidStepHandler finalAndroidStepHandler = androidStepHandler;
+                        AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
+                            finalAndroidStepHandler.openApp(new HandleDes(), msg.getString("pkg"));
+                        });
+                    }
                     if (msg.getString("detail").equals("install")) {
                         AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
                             JSONObject result = new JSONObject();
@@ -605,6 +622,7 @@ public class AndroidWSServer {
                 }
             }
         }
+        AndroidAPKMap.getMap().remove(udIdMap.get(session).getSerialNumber());
         outputMap.remove(session);
         udIdMap.remove(session);
         if (rotationMap.get(session) != null) {
