@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -47,7 +46,7 @@ public class LaunchTool implements ApplicationRunner {
         }
         if (isEnableSgm) {
             // fixme 本地调试环境忽略
-            SGMTool.init();
+//            SGMTool.init();
             new Thread(() -> {
                 File file = new File("plugins/sonic-go-mitmproxy-ca-cert.pem");
                 if (!file.exists()) {
